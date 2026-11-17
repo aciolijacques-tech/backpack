@@ -1,0 +1,172 @@
+#!/bin/bash
+# Instalar Backpack — liga o servidor sozinho no login e cria o app "Backpack" em Aplicativos.
+BUNDLE="$(cd "$(dirname "$0")/../.." && pwd)"
+APP_DIR="$(dirname "$BUNDLE")"
+
+aviso() { osascript -e "display dialog \"$1\" with title \"Backpack\" buttons {\"OK\"} default button 1 with icon $2" >/dev/null 2>&1; }
+
+case "$BUNDLE" in
+  */AppTranslocation/*)
+    aviso "O macOS isolou este instalador por ele ter vindo da internet.\n\nNo Terminal, rode:\nxattr -dr com.apple.quarantine (arraste a pasta do Backpack aqui)\n\nDepois abra o instalador de novo." caution
+    exit 1 ;;
+esac
+
+if [ ! -f "$APP_DIR/server.js" ]; then
+  aviso "Deixe o Instalar Backpack dentro da pasta do Backpack (junto do server.js) e abra de novo." caution
+  exit 1
+fi
+
+# registro da instalação (para achar o problema se algo der errado)
+mkdir -p "$APP_DIR/data/logs"
+LOG="$APP_DIR/data/logs/instalacao.log"
+exec > "$LOG" 2>&1
+echo "== Instalar Backpack · $(date) · macOS $(sw_vers -productVersion) · $(uname -m)"
+echo "pasta: $APP_DIR"
+
+# apps abertos pelo Finder não herdam o PATH do Terminal
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+[ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1
+NODE_BIN="$(command -v node || true)"
+echo "node: ${NODE_BIN:-não encontrado} $([ -n "$NODE_BIN" ] && "$NODE_BIN" --version)"
+if [ -z "$NODE_BIN" ]; then
+  aviso "O Backpack precisa do Node.js.\n\nInstale em nodejs.org (versão LTS) e abra o instalador de novo." stop
+  open "https://nodejs.org"
+  exit 1
+fi
+
+# o app é montado no próprio Mac: precisa do compilador da Apple (Ferramentas de Linha de Comando)
+SWIFTC="$(xcrun --find swiftc 2>/dev/null || true)"
+echo "swiftc: ${SWIFTC:-não encontrado}"
+if [ -z "$SWIFTC" ]; then
+  aviso "Para criar o app, o macOS precisa das Ferramentas de Linha de Comando da Apple (gratuitas).\n\nVai aparecer a janela de instalação da Apple. Quando terminar, abra o Instalar Backpack de novo." note
+  xcode-select --install || true
+  exit 1
+fi
+
+# ---------- 1. servidor ligado sozinho (launchd) ----------
+AGENTES="$HOME/Library/LaunchAgents"
+PLIST="$AGENTES/com.backpack.server.plist"
+mkdir -p "$AGENTES"
+ANTIGO="$AGENTES/com.tooref.server.plist"
+if [ -f "$ANTIGO" ]; then echo "removendo instalação antiga (Tooref)"; launchctl unload "$ANTIGO" 2>/dev/null || true; rm -f "$ANTIGO"; fi
+sleep 1
+if lsof -nP -iTCP:4322 -sTCP:LISTEN >/dev/null 2>&1 && ! launchctl list com.backpack.server >/dev/null 2>&1; then
+  echo "porta 4322 ocupada por outro processo:"; lsof -nP -iTCP:4322 -sTCP:LISTEN
+  aviso "Já tem um Backpack aberto (provavelmente pelo Abrir.command).\n\nFeche a janela do Terminal dele e abra este instalador de novo." caution
+  exit 1
+fi
+[ -f "$APP_DIR/data/logs/server.log" ] && mv -f "$APP_DIR/data/logs/server.log" "$APP_DIR/data/logs/server.log.1"
+cat > "$PLIST" << PLISTEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.backpack.server</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$NODE_BIN</string>
+    <string>$APP_DIR/server.js</string>
+  </array>
+  <key>WorkingDirectory</key><string>$APP_DIR</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>BACKPACK_LAUNCHD</key><string>1</string>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
+  <key>ThrottleInterval</key><integer>10</integer>
+  <key>StandardOutPath</key><string>$APP_DIR/data/logs/server.log</string>
+  <key>StandardErrorPath</key><string>$APP_DIR/data/logs/server.log</string>
+</dict>
+</plist>
+PLISTEOF
+launchctl unload "$PLIST" 2>/dev/null || true
+launchctl load "$PLIST" && echo "servidor: serviço carregado"
+
+# ---------- 2. app Backpack em Aplicativos ----------
+VERSAO="$(/usr/bin/python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["versao"])' "$APP_DIR/versao.json" 2>/dev/null || echo 2.0.0)"
+TMP="$(mktemp -d)"
+NOVO="$TMP/Backpack.app"
+mkdir -p "$NOVO/Contents/MacOS" "$NOVO/Contents/Resources"
+echo "compilando o app (v$VERSAO)…"
+# monta para chip Apple e para Intel e junta os dois (abre nativo em qualquer Mac)
+SAIDA="$NOVO/Contents/MacOS/Backpack"
+OK=1
+for ARQ in arm64 x86_64; do
+  echo "  · $ARQ"
+  xcrun swiftc -swift-version 5 -O -target "$ARQ-apple-macos12.0" -framework Cocoa -framework WebKit -framework AVFoundation \
+    -o "$TMP/Backpack-$ARQ" "$APP_DIR/mac/Backpack.swift" || OK=0
+done
+if [ "$OK" = 1 ]; then
+  lipo -create -output "$SAIDA" "$TMP/Backpack-arm64" "$TMP/Backpack-x86_64"
+else
+  # se só uma arquitetura compilar, usa a do Mac atual
+  NATIVA="x86_64"; [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ] && NATIVA="arm64"
+  [ -f "$TMP/Backpack-$NATIVA" ] && cp "$TMP/Backpack-$NATIVA" "$SAIDA"
+fi
+if [ ! -f "$SAIDA" ]; then
+  echo "FALHA AO COMPILAR"
+  aviso "O servidor foi ligado, mas não consegui criar o app.\n\nOs detalhes estão em data/logs/instalacao.log. Enquanto isso, use o endereço http://127.0.0.1:4322 no navegador." caution
+  open "http://127.0.0.1:4322"
+  exit 1
+fi
+echo "binário: $(file -b "$SAIDA")"
+cp "$BUNDLE/Contents/Resources/AppIcon.icns" "$NOVO/Contents/Resources/AppIcon.icns"
+cat > "$NOVO/Contents/Info.plist" << INFOEOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Backpack</string>
+  <key>CFBundleDisplayName</key><string>Backpack</string>
+  <key>CFBundleIdentifier</key><string>com.backpack.app</string>
+  <key>CFBundleExecutable</key><string>Backpack</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>$VERSAO</string>
+  <key>CFBundleVersion</key><string>$VERSAO</string>
+  <key>LSMinimumSystemVersion</key><string>12.0</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSPrincipalClass</key><string>NSApplication</string>
+  <key>NSHumanReadableCopyright</key><string>Código aberto (MIT)</string>
+  <key>NSAppTransportSecurity</key><dict><key>NSAllowsLocalNetworking</key><true/></dict>
+  <key>NSMicrophoneUsageDescription</key><string>O Backpack usa o microfone para você ditar textos e criar itens falando. O áudio é transcrito neste Mac.</string>
+  <key>BackpackPasta</key><string>$APP_DIR</string>
+  <key>BackpackNode</key><string>$NODE_BIN</string>
+</dict>
+</plist>
+INFOEOF
+codesign --force --deep --sign - "$NOVO" && echo "assinatura local: ok"
+
+DESTINO="/Applications"
+[ -w "$DESTINO" ] || { DESTINO="$HOME/Applications"; mkdir -p "$DESTINO"; }
+pkill -x Backpack 2>/dev/null || true
+rm -rf "$DESTINO/Backpack.app"
+ditto "$NOVO" "$DESTINO/Backpack.app"
+touch "$DESTINO/Backpack.app"
+echo "app instalado em: $DESTINO/Backpack.app"
+# marca qual versão do app do Mac foi montada: se uma atualização mudar o app, o Backpack pede para reinstalar
+cat "$APP_DIR/mac/Backpack.swift" "$APP_DIR/Instalar Backpack.app/Contents/MacOS/instalar" | shasum -a 256 | cut -d' ' -f1 > "$APP_DIR/data/app-instalado.txt"
+echo "marca do app: $(cat "$APP_DIR/data/app-instalado.txt")"
+
+echo "assinatura: $(codesign -dv "$DESTINO/Backpack.app" 2>&1 | grep -E 'Signature|Identifier' | tr '\n' ' ')"
+echo "gatekeeper: $(spctl --assess --type execute -vv "$DESTINO/Backpack.app" 2>&1 | head -2 | tr '\n' ' ')"
+echo "quarentena: $(xattr -p com.apple.quarantine "$DESTINO/Backpack.app" 2>/dev/null || echo nenhuma)"
+
+# teste: abre o app por 5 s e anota se ele continuou vivo ou o erro que deu
+echo "testando o app…"
+"$DESTINO/Backpack.app/Contents/MacOS/Backpack" > "$TMP/teste.txt" 2>&1 &
+PID=$!
+sleep 5
+if kill -0 "$PID" 2>/dev/null; then
+  echo "teste: o app abriu e ficou aberto (ok)"; kill "$PID" 2>/dev/null; sleep 1
+else
+  wait "$PID"; echo "teste: o app FECHOU SOZINHO (código $?)"; echo "--- saída do app:"; cat "$TMP/teste.txt"; echo "---"
+fi
+rm -rf "$TMP"
+
+if ! open "$DESTINO/Backpack.app"; then echo "open falhou"; fi
+aviso "Backpack instalado!\n\nO app está em Aplicativos e no Launchpad. Para deixar no Dock: clique com o botão direito no ícone dele → Opções → Manter no Dock.\n\nSe mover ou renomear a pasta do Backpack, abra este instalador de novo." note
+echo "== fim: tudo certo"

@@ -1,0 +1,30 @@
+{
+  "id": "modelos-v2",
+  "itens": [
+    {
+      "tipo": "instrucao", "modelo": true, "titulo": "Modelo: briefing de projeto",
+      "descricao": "Perguntas para começar um projeto novo com o cliente.",
+      "texto": "Cliente:\nObjetivo do projeto:\nPúblico:\nO que precisa ser entregue:\nReferências que gosta:\nO que não quer de jeito nenhum:\nPrazo:\nOrçamento combinado:\nQuem aprova:",
+      "checklist": [{ "t": "Reunião de briefing feita" }, { "t": "Proposta enviada" }, { "t": "Proposta aprovada" }, { "t": "Entrega feita" }],
+      "tags": ["modelo", "cliente"]
+    },
+    {
+      "tipo": "nota", "modelo": true, "titulo": "Modelo: ata de reunião",
+      "descricao": "Pauta, decisões e próximos passos.",
+      "texto": "Data:\nParticipantes:\n\nPauta\n- \n\nDecisões\n- \n\nPróximos passos (quem faz o quê e até quando)\n- ",
+      "tags": ["modelo", "reuniao"]
+    },
+    {
+      "tipo": "instrucao", "modelo": true, "titulo": "Modelo: checklist de publicação",
+      "descricao": "Conferir antes de publicar um post.",
+      "checklist": [{ "t": "Texto revisado" }, { "t": "Imagem no tamanho certo" }, { "t": "Legenda e chamada para ação" }, { "t": "Marcações e links conferidos" }, { "t": "Agendado ou publicado" }],
+      "tags": ["modelo", "conteudo"]
+    },
+    {
+      "tipo": "prompt", "modelo": true, "titulo": "Modelo: revisar texto com IA",
+      "descricao": "Prompt para revisar sem mudar o sentido.",
+      "texto": "Revise o texto abaixo: corrija ortografia, pontuação e concordância, deixe as frases mais claras e curtas, mantenha o meu tom e não acrescente informação nova. Depois liste o que você mudou.\n\n[COLE O TEXTO AQUI]",
+      "tags": ["modelo", "ia"]
+    }
+  ]
+}

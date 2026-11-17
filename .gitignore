@@ -1,0 +1,6 @@
+data/
+node_modules/
+.DS_Store
+
+# material de referência pessoal, não é asset do produto (tem foto de terceiro)
+Referencia visual/
