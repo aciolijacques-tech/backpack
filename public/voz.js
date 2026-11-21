@@ -193,7 +193,7 @@ Regras: "tarefa" é algo a fazer (comece com verbo); datas faladas (amanhã, sex
         <label class="linha"><input type="checkbox" id="vGuarda"> Guardar o áudio junto (no item)</label>
         <div class="linha"><button class="btn ia" id="vIA">${Icones.svg('ia', 15)} Organizar com IA</button><button class="btn sec" id="vNota">${Icones.svg('nota', 14)} Salvar como nota</button><button class="btn sec" id="vTar">${Icones.svg('tarefas', 14)} Virar tarefa</button></div>
         <div id="vLista"></div></div>
-      <small class="suave">A transcrição roda neste Mac. Na primeira vez ele baixa o motor de voz (uns 80 MB) e depois funciona rápido.</small></div>`,
+      <small class="suave">A transcrição roda neste ${T.pc}. Na primeira vez ele baixa o motor de voz (uns 80 MB) e depois funciona rápido.</small></div>`,
     { classe: 'pequeno', aoFechar: () => { clearInterval(relogio); if (rec) rec.parar(); } });
     const st = (t, sub) => { $('#vSt', m).textContent = t; if (sub !== undefined) $('#vSub', m).textContent = sub; };
     const mic = $('#vMic', m);

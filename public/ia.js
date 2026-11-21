@@ -3,8 +3,8 @@
 (function () {
   const { esc, $ } = T;
   T.IAS = [
-    { id: 'claude', nome: 'Claude Code', dica: 'Usa a assinatura do Claude logada neste Mac.' },
-    { id: 'codex', nome: 'Codex (ChatGPT)', dica: 'Usa a assinatura do ChatGPT logada neste Mac.' },
+    { id: 'claude', nome: 'Claude Code', dica: 'Usa a assinatura do Claude logada neste computador.' },
+    { id: 'codex', nome: 'Codex (ChatGPT)', dica: 'Usa a assinatura do ChatGPT logada neste computador.' },
   ];
   let st = null;
   T.iaStatus = async (forcar) => { if (!st || forcar) st = await T.api(`/api/ia/status${forcar ? '?checar=1' : ''}`); return st; };
@@ -29,7 +29,7 @@
           : '<button class="btn pequeno" data-u="trocar">Substituir</button><button class="btn sec pequeno" data-u="somar">Inserir abaixo</button>'}
           <button class="btn sec pequeno" data-u="copiar">${Icones.svg('copiar', 14)} Copiar</button><button class="btn sec pequeno" data-u="nao">Descartar</button></div>` : '';
     box.innerHTML = `<div class="ia-painel">
-      <div class="ia-cab">${Icones.svg('ia', 16)} <b>IA</b> ${T.dica('Usa o Claude Code ou o Codex do seu Mac (a sua assinatura) ou a chave da API, conforme as Configurações. O texto só é enviado quando você clica.')}
+      <div class="ia-cab">${Icones.svg('ia', 16)} <b>IA</b> ${T.dica('Usa o Claude Code ou o Codex do seu ${T.pc} (a sua assinatura) ou a chave da API, conforme as Configurações. O texto só é enviado quando você clica.')}
         <span class="espaco"></span><select id="iaUsar" hidden></select><button class="btn-x" id="iaX">${Icones.svg('x', 14)}</button></div>
       <div class="chips">${acoes.map(([k, n]) => `<button class="chip" data-k="${k}">${n}</button>`).join('')}</div>
       <div class="linha"><input type="text" id="iaPedido" placeholder="Ou peça do seu jeito: “traduza para inglês”, “deixe mais formal”…"><button class="btn ia pequeno" id="iaIr">Enviar</button></div>
@@ -77,11 +77,11 @@
     const achadas = T.IAS.filter((i) => s[i.id] && s[i.id].ok);
     const linhas = T.IAS.map((i) => {
       const ok = s[i.id] && s[i.id].ok;
-      return `<div class="cfg-linha"><span><b>${i.nome}</b><small class="${ok ? 'verde' : ''}">${ok ? `● encontrado${s[i.id].versao ? ` (v${esc(s[i.id].versao)})` : ''} · ${i.dica}` : '○ não encontrado neste Mac'}</small></span>${ok ? T.chave(`ia_${i.id}`, ligada(i.id)) : ''}</div>`;
+      return `<div class="cfg-linha"><span><b>${i.nome}</b><small class="${ok ? 'verde' : ''}">${ok ? `● encontrado${s[i.id].versao ? ` (v${esc(s[i.id].versao)})` : ''} · ${i.dica}` : `○ não encontrado neste ${T.pc}`}</small></span>${ok ? T.chave(`ia_${i.id}`, ligada(i.id)) : ''}</div>`;
     }).join('');
-    const topo = achadas.length === 2 ? 'Encontrei o <b>Claude Code</b> e o <b>Codex</b> neste Mac. Quer usar os dois?'
-      : achadas.length === 1 ? `Encontrei o <b>${achadas[0].nome}</b> neste Mac.`
-        : 'Não encontrei o Claude Code nem o Codex neste Mac. Tudo bem: o Backpack funciona sem IA, e você pode instalar depois ou usar uma chave da API do Claude nas Configurações.';
+    const topo = achadas.length === 2 ? `Encontrei o <b>Claude Code</b> e o <b>Codex</b> neste ${T.pc}. Quer usar os dois?`
+      : achadas.length === 1 ? `Encontrei o <b>${achadas[0].nome}</b> neste ${T.pc}.`
+        : `Não encontrei o Claude Code nem o Codex neste ${T.pc}. Tudo bem: o Backpack funciona sem IA, e você pode instalar depois ou usar uma chave da API do Claude nas Configurações.`;
     const m = T.modal(`${T.cabecalho(`${Icones.svg('ia', 20)} Sua IA no Backpack`)}<div class="modal-corpo"><p>${topo}</p>
       ${achadas.length ? '<p class="suave">Ligue as que quiser usar para melhorar, corrigir e resumir textos dentro dos itens. Elas usam a sua assinatura, sem chave e sem custo extra.</p>' : ''}
       <div class="caixa">${linhas}</div><small class="suave">Dá para mudar quando quiser em Configurações → IA.</small>
@@ -103,7 +103,7 @@
       <select id="iaVia"><option value="auto">Automático</option><option value="claude">Claude Code</option><option value="codex">Codex</option><option value="api">Chave da API do Claude</option></select></div>
     <div class="cfg-linha"><span>Modelo do Claude ${T.dica('Vale para o Claude Code e para a chave da API. Opus: o mais caprichado. Sonnet: rápido e bom. Haiku: o mais barato.')}</span>
       <select id="iaModelo"><option value="claude-opus-5-5">Claude Opus 5.5</option><option value="claude-sonnet-5-5">Claude Sonnet 5.5</option><option value="claude-haiku-5-5">Claude Haiku 5.5</option></select></div>
-    <div class="cfg-linha"><span>Chave da API do Claude (opcional) ${T.dica('Só para quem não tem Claude Code nem Codex. Crie em console.anthropic.com. Fica só neste Mac, em data/segredos.json, fora do backup e do Drive.')}<small id="iaChaveSt"></small></span></div>
+    <div class="cfg-linha"><span>Chave da API do Claude (opcional) ${T.dica('Só para quem não tem Claude Code nem Codex. Crie em console.anthropic.com. Fica só neste ${T.pc}, em data/segredos.json, fora do backup e do Drive.')}<small id="iaChaveSt"></small></span></div>
     <div class="linha"><input type="password" id="iaChave" placeholder="Cole aqui a sua chave (sk-ant-…)" autocomplete="off"><button class="btn" id="iaGuardar">Guardar</button><button class="btn sec" id="iaTirar">Remover</button></div>
     <div class="linha"><button class="btn sec pequeno" id="iaDeNovo">${Icones.svg('busca', 14)} Procurar IAs de novo</button></div></section>`;
 

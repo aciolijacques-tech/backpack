@@ -124,7 +124,7 @@
     const m = T.modal(`${T.cabecalho('Editar tarefa')}<div class="modal-corpo">
       <div class="linha com-mic"><input type="text" id="etTexto" value="${esc(t.texto)}" maxlength="1000">${T.micBtn ? T.micBtn('etTexto') : ''}</div>
       <div class="grade2"><label class="campo">Data<input type="date" id="etData" value="${t.data}"></label>
-      <label class="campo">Lembrete ${T.dica('O Mac avisa nesse horário, no dia da tarefa, mesmo com o Backpack fechado.')}<input type="time" id="etHora" value="${t.hora || ''}"></label>
+      <label class="campo">Lembrete ${T.dica('O ${T.pc} avisa nesse horário, no dia da tarefa, mesmo com o Backpack fechado.')}<input type="time" id="etHora" value="${t.hora || ''}"></label>
       <label class="campo">Prioridade<select id="etPrio">${T.PRIOS.map((p) => `<option value="${p}" ${p === t.prio ? 'selected' : ''}>${T.PRIO_NOME[p]}</option>`).join('')}</select></label>
       <label class="campo">Repetir ${T.dica('Ao concluir, a próxima é criada sozinha.')}<select id="etRep">${optsRep(t.rep)}</select></label>
       ${(T.db.clientes || []).length ? `<label class="campo">Cliente<select id="etCli">${T.opcoesCliente(t.cliente)}</select></label>` : ''}</div>
@@ -153,7 +153,7 @@
         <select id="${pref}Prio" title="Prioridade"><option value="alta">Alta</option><option value="media" selected>Média</option><option value="baixa">Baixa</option></select>
         <select id="${pref}Rp" title="Repetir">${optsRep('')}</select>
         ${(T.db.clientes || []).length && !extra.cliente ? `<select id="${pref}Cli" title="Cliente">${T.opcoesCliente('')}</select>` : ''}
-        ${T.dica('A data também pode ir no texto. Com lembrete, o Mac avisa no horário. Com repetição, ao concluir a próxima é criada sozinha.')}
+        ${T.dica('A data também pode ir no texto. Com lembrete, o ${T.pc} avisa no horário. Com repetição, ao concluir a próxima é criada sozinha.')}
       </div></div>`;
   T.ligarNovaTarefa = (pref = 't', extra = {}, depois) => {
     const i = $(`#${pref}Nova`), b = $(`#${pref}Add`);

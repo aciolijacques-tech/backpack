@@ -69,7 +69,7 @@
   document.addEventListener('keydown', (e) => {
     const digitando = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName || '') || e.target.isContentEditable;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (T.modalAberto()) T.fecharModal(); T.abrirBusca(); return; }
-    if (e.metaKey && (e.key === '[' || e.key === ']') && !digitando) { e.preventDefault(); if (e.key === '[') history.back(); else history.forward(); return; }
+    if ((e.metaKey || e.ctrlKey) && (e.key === '[' || e.key === ']') && !digitando) { e.preventDefault(); if (e.key === '[') history.back(); else history.forward(); return; }
     if (e.key === 'Escape') { if (!$('#nivel-novo').hidden) $('#nivel-novo').hidden = true; else if (T.modalAberto()) T.fecharModal(); $('#menu').hidden = true; return; }
     if (digitando || e.ctrlKey || e.altKey || e.metaKey || T.modalAberto() || document.querySelector('.leitor-tela')) return;
     const k = e.key.toLowerCase();

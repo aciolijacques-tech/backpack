@@ -4,3 +4,6 @@ node_modules/
 
 # material de referência pessoal, não é asset do produto (tem foto de terceiro)
 Referencia visual/
+
+# projeto de vídeo do tutorial (renders, assets e capturas pesadas), fica fora do repositório
+video/

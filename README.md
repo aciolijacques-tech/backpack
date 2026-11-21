@@ -1,11 +1,11 @@
 # Backpack
 
-Inventário pessoal para Mac: guarde PDFs, prompts, instruções, comandos, links e notas, organize
+Inventário pessoal para Mac e Windows: guarde PDFs, prompts, instruções, comandos, links e notas, organize
 tarefas, rotina, clientes e finanças, e ache tudo rápido. Roda 100% no seu computador, sem conta e sem nuvem.
 
 ![Tela inicial do Backpack](docs/imagens/inicio.jpg)
 
-**Precisa de:** Mac com macOS 12 ou mais novo e o [Node.js](https://nodejs.org) (versão LTS). É grátis e open source.
+**Precisa de:** Mac com macOS 12 ou mais novo, ou Windows 10/11, e o [Node.js](https://nodejs.org) (versão LTS). É grátis e open source.
 
 ## Baixar e instalar
 
@@ -32,6 +32,17 @@ O servidor liga sozinho quando você entra no Mac. Se mover ou renomear a pasta,
 Para remover: `Desinstalar.command` (não apaga seus dados).
 Se algo der errado, os detalhes ficam em `data/logs/instalacao.log`; use o botão **Reportar problema**
 no app ou abra uma [issue](https://github.com/aciolijacques-tech/backpack/issues).
+
+## Instalar no Windows (10 e 11)
+1. Instale o [Node.js](https://nodejs.org) (botão "LTS").
+2. Botão verde **Code → Download ZIP**, descompacte, renomeie a pasta para `Backpack` e deixe em
+   Documentos **antes** de instalar.
+3. Dois cliques em **Instalar Backpack.cmd**. Se o Windows mostrar "O Windows protegeu o computador",
+   clique em **Mais informações → Executar assim mesmo**.
+
+Pronto: o **Backpack** fica no Menu Iniciar e na Área de Trabalho e abre numa janela própria (usa o Edge,
+que já vem no Windows). O servidor liga sozinho quando você entra no Windows. Para remover:
+`Desinstalar Backpack.cmd` (não apaga seus dados). Se mover a pasta, rode o instalador de novo.
 
 ## O que tem
 ![Biblioteca do Backpack](docs/imagens/biblioteca.jpg)
@@ -71,7 +82,9 @@ Tudo fica em `data/`, dentro da pasta do app, e nunca vai para o GitHub:
 clique direito no cartão abre o menu.
 
 ## Limitações conhecidas
-- Só testado no macOS. Windows e Linux não são suportados ainda.
+- Windows: suporte novo, ainda em teste. Linux não é suportado.
+- Windows: o microfone usa o do Edge (pede permissão); o celular em HTTPS precisa do Git para Windows
+  instalado (traz o `openssl`), sem ele o celular entra pelo HTTP; atalhos de teclado usam Ctrl no lugar de Cmd.
 - Sem assinatura da Apple: o macOS pede confirmação na primeira abertura do instalador.
 - Para instalar, o Mac precisa das Ferramentas de Linha de Comando da Apple.
 - Pensado para uma pessoa. Janelas e celular abertos juntos se sincronizam a cada 4 s; se a mesma
@@ -83,7 +96,7 @@ clique direito no cartão abre o menu.
 - Os contratos dos kits são modelos de referência: revise com um advogado antes de usar.
 
 ## Para quem desenvolve
-Node.js puro, sem dependências. A janela do Mac é `mac/Backpack.swift`. `node server.js` roda; `node --test` testa (com dados temporários).
+Node.js puro, sem dependências. A janela do Mac é `mac/Backpack.swift`; a do Windows, `windows/abrir.vbs` (Edge em modo app). O que muda por sistema fica em `lib/sistema.js`. `node server.js` roda; `node --test` testa (com dados temporários).
 Regras do projeto em `CLAUDE.md`, decisões em `docs/decisoes/`, specs em `docs/specs/`.
 Para publicar uma versão: suba `versao` e `novidades` em `versao.json` e dê push no `master`.
 

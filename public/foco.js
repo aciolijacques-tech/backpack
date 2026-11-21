@@ -36,7 +36,7 @@
     try {
       const r = await T.api('/api/foco/iniciar', { method: 'POST', body: JSON.stringify({ min: m || 25 }) });
       fim = Date.now() + (r.fim - r.agora); min = r.min; T.som('estrela'); pintar();
-      T.toast(`Foco de ${min} min começou. Pode fechar a janela: o Mac avisa no fim.`);
+      T.toast(`Foco de ${min} min começou. Pode fechar a janela: o ${T.pc} avisa no fim.`);
     } catch (e) { T.toast(e.message, null, 'erro'); }
   };
 
@@ -51,7 +51,7 @@
       <p>Quanto tempo? ${T.dica('O relógio roda no servidor do Backpack. Pode fechar a janela: no fim aparece um aviso do macOS. A rodinha do mouse (ou as setas) muda de 5 em 5 minutos.')}</p>
       <div class="foco-num" id="focoNum" tabindex="0" title="Role a rodinha ou use as setas"><button class="btn-icone vidro-botao" data-d="-5">−</button><b id="focoMin">${pref}</b><span>min</span><button class="btn-icone vidro-botao" data-d="5">${Icones.svg('mais', 14)}</button></div>
       <div class="foco-grade">${PRONTOS.map((n) => `<button class="btn ${n === pref ? '' : 'sec'}" data-m="${n}">${n} min</button>`).join('')}</div>
-      <div class="linha entre"><button class="btn sec pequeno" id="focoTeste">${Icones.svg('alerta', 14)} Testar o aviso do Mac</button><button class="btn" id="focoIr">Começar</button></div></div>`, { classe: 'pequeno' });
+      <div class="linha entre"><button class="btn sec pequeno" id="focoTeste">${Icones.svg('alerta', 14)} Testar o aviso do ${T.pc}</button><button class="btn" id="focoIr">Começar</button></div></div>`, { classe: 'pequeno' });
     const mostra = () => { $('#focoMin', m).textContent = pref; T.$$('[data-m]', m).forEach((b) => b.classList.toggle('sec', +b.dataset.m !== pref)); pintar(); };
     const muda = (d) => { pref = limita(pref + d); T.som('clique'); mostra(); };
     $('#focoTeste', m).onclick = () => T.api('/api/aviso-teste', { method: 'POST' }).then(() => T.toast('Aviso enviado. Olhe o canto da tela.'));

@@ -3,9 +3,12 @@
 (function () {
   const { esc, $ } = T;
   T.remoto = false;
+  // nome do computador nos textos (o servidor diz o sistema; o celular mostra o do computador)
+  T.pc = /Mac/.test(navigator.platform) ? 'Mac' : /Win/.test(navigator.platform) ? 'PC' : 'computador';
+  T.mod = /Mac|iP/.test(navigator.platform) ? '⌘' : 'Ctrl+';
 
   T.iniciarCelular = async () => {
-    try { const r = await T.api('/api/ping'); T.remoto = !!r.remoto; } catch (_) {}
+    try { const r = await T.api('/api/ping'); T.remoto = !!r.remoto; if (r.so) T.pc = r.so === 'darwin' ? 'Mac' : r.so === 'win32' ? 'PC' : 'computador'; } catch (_) {}
     document.body.classList.toggle('remoto', T.remoto);
   };
 
@@ -26,18 +29,19 @@
   T.secaoCelular = () => `<section class="cfg vidro-cartao" id="sec-celular"><h3>${Icones.svg('tela', 18)} Usar no celular</h3><div id="celBox"><small class="suave">Carregando…</small></div></section>`;
   T.ligarSecaoCelular = async () => {
     const box = $('#celBox'); if (!box) return;
-    if (T.remoto) { box.innerHTML = '<p class="suave">Você está usando pelo celular. Para ligar, desligar ou trocar o código, use o Mac.</p>'; return; }
+    if (T.remoto) { box.innerHTML = `<p class="suave">Você está usando pelo celular. Para ligar, desligar ou trocar o código, use o ${T.pc}.</p>`; return; }
     let s;
     try { s = await T.api('/api/rede'); } catch (e) { box.innerHTML = `<small class="vermelho">${esc(e.message)}</small>`; return; }
     const desenhar = () => {
-      box.innerHTML = `<div class="cfg-linha"><span>Liberar na rede Wi-Fi de casa ${T.dica('Celular e Mac precisam estar no mesmo Wi-Fi. A conexão é criptografada (HTTPS). Só entra quem ler o QR Code ou digitar o código. Configurações, chaves e desligar continuam só no Mac.')}</span>${T.chave('celOn', s.on)}</div>
+      box.innerHTML = `<div class="cfg-linha"><span>Liberar na rede Wi-Fi de casa ${T.dica('Celular e ${T.pc} precisam estar no mesmo Wi-Fi. A conexão é criptografada (HTTPS). Só entra quem ler o QR Code ou digitar o código. Configurações, chaves e desligar continuam só no Mac.')}</span>${T.chave('celOn', s.on)}</div>
         ${s.erro ? `<p class="vermelho">${esc(s.erro)}</p>` : ''}
-        ${s.on ? (s.link ? `<div class="cel-qr"><div class="qr">${T.qrSvg(s.link, 190)}</div><div><p>1. No celular, abra a câmera e aponte para o QR Code.</p><p>2. Ou abra <b class="mono">https://${esc(s.ips[0])}:${s.porta}</b> no navegador e digite o código:</p>
+        ${s.on ? (s.link ? `<div class="cel-qr"><div class="qr">${T.qrSvg(s.link, 190)}</div><div><p>1. No celular, abra a câmera e aponte para o QR Code.</p><p>2. Ou abra <b class="mono">https://${esc(s.ips[0])}:${s.portaTls}</b> no navegador e digite o código:</p>
             <div class="pin">${esc(s.pin.replace(/(\d{3})(\d{3})/, '$1 $2'))}</div>
-            <p class="suave pequeno-txt">Na primeira vez o celular mostra “conexão não privada”, porque o certificado é deste Mac e não de uma empresa. Toque em “Mostrar detalhes → visitar o site” e, na tela de entrar, em “Instale o certificado deste Mac”: depois disso o aviso some.</p>
+            <p class="suave pequeno-txt">Na primeira vez aparece “conexão não privada” (o certificado é deste ${T.pc}, não de uma empresa). Toque em “Mostrar detalhes → visitar o site” e depois em <a href="https://${esc(s.ips[0])}:${s.portaTls}/certificado" target="_blank">“Instale o certificado deste Mac”</a>: uma vez só, o aviso some de qualquer navegador, incluindo o Chrome.</p>
+            <details class="pequeno-txt"><summary class="suave" style="cursor:pointer">Chrome ainda não conecta?</summary><p class="suave">Use <b class="mono">http://${esc(s.ips[0])}:${s.porta}</b> em vez do link acima — sem criptografia, só na sua rede de casa.</p></details>
             <button class="btn sec pequeno" id="celTroca">${Icones.svg('atualizar', 13)} Trocar código</button> ${T.dica('Gera um QR e um código novos e desconecta todos os celulares que já entraram.')}</div></div>`
-          : '<p class="vermelho">Não achei o Mac numa rede Wi-Fi. Conecte no Wi-Fi e abra esta tela de novo.</p>')
-          : '<p class="suave">Desligado: só este Mac acessa o Backpack.</p>'}
+          : `<p class="vermelho">Não achei o ${T.pc} numa rede Wi-Fi. Conecte no Wi-Fi e abra esta tela de novo.</p>`)
+          : `<p class="suave">Desligado: só este ${T.pc} acessa o Backpack.</p>`}
         <small class="suave">Na primeira vez, o macOS pode perguntar se o “node” pode aceitar conexões: clique em Permitir.</small>`;
       $('#celOn', box).onchange = async (e) => {
         try { s = await T.api('/api/rede', { method: 'POST', body: JSON.stringify({ on: e.target.checked }) }); T.som('clique'); desenhar(); } catch (er) { T.toast(er.message, null, 'erro'); s = await T.api('/api/rede').catch(() => s); desenhar(); }
@@ -53,19 +57,19 @@
   };
 
   // ---------- conexões com outros programas ----------
-  T.secaoConexoes = () => `<section class="cfg vidro-cartao" id="sec-conexoes"><h3>${Icones.svg('enviar', 18)} Conexões ${T.dica('Outros programas deste Mac (um atalho, um script, outro app) podem mandar itens para o Backpack com um código. Cada programa tem o seu e dá para desligar.')}</h3><div id="cnxBox"><small class="suave">Carregando…</small></div></section>`;
+  T.secaoConexoes = () => `<section class="cfg vidro-cartao" id="sec-conexoes"><h3>${Icones.svg('enviar', 18)} Conexões ${T.dica('Outros programas deste ${T.pc} (um atalho, um script, outro app) podem mandar itens para o Backpack com um código. Cada programa tem o seu e dá para desligar.')}</h3><div id="cnxBox"><small class="suave">Carregando…</small></div></section>`;
   T.ligarSecaoConexoes = async () => {
     const box = $('#cnxBox'); if (!box) return;
-    if (T.remoto) { box.innerHTML = '<p class="suave">As conexões são configuradas no Mac.</p>'; return; }
+    if (T.remoto) { box.innerHTML = `<p class="suave">As conexões são configuradas no ${T.pc}.</p>`; return; }
     const desenhar = async () => {
       let r;
       try { r = await T.api('/api/conexoes'); } catch (e) { box.innerHTML = `<small class="vermelho">${esc(e.message)}</small>`; return; }
       const exemplo = `curl -X POST http://127.0.0.1:${r.porta}/api/entrada \\\n  -H "Content-Type: application/json" \\\n  -H "X-Backpack-Conexao: SEU_CODIGO" \\\n  -d '{"formato":"${r.formato}","app":"Meu atalho","itens":[{"id":"1","tipo":"nota","titulo":"Oi do atalho"}]}'`;
       box.innerHTML = `${r.conexoes.map((c) => `<div class="cnx" data-c="${c.id}"><div><b>${esc(c.nome)}</b><small class="suave">${c.recebidos || 0} recebido${c.recebidos === 1 ? '' : 's'}${c.ultimoUso ? ` · último em ${new Date(c.ultimoUso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}` : ''}</small>
           <code class="mono cnx-cod">${esc(c.codigo)}</code></div><button class="btn sec pequeno" data-cop="${esc(c.codigo)}">${Icones.svg('copiar', 13)}</button>${T.chave(`cx-${c.id}`, c.on)}<button class="btn-x" data-rm="${c.id}" title="Apagar">${Icones.svg('x', 14)}</button></div>`).join('') || '<p class="suave">Nenhum programa conectado.</p>'}
-        <div class="linha"><input type="text" id="cnxNome" placeholder="Nome do programa (ex.: Atalhos do Mac)" maxlength="40"><button class="btn sec" id="cnxNovo">${Icones.svg('mais', 14)} Criar código</button></div>
+        <div class="linha"><input type="text" id="cnxNome" placeholder="Nome do programa (ex.: um atalho ou script)" maxlength="40"><button class="btn sec" id="cnxNovo">${Icones.svg('mais', 14)} Criar código</button></div>
         <details><summary class="suave">Como mandar um item (exemplo)</summary><pre class="mono pequeno-txt">${esc(exemplo)}</pre>
-          <small class="suave">Mesmo programa + mesmo "id" atualiza o item em vez de duplicar. Tipos: pdf, prompt, instrucao, comando, link, nota. Só pedidos deste Mac são aceitos.</small></details>`;
+          <small class="suave">Mesmo programa + mesmo "id" atualiza o item em vez de duplicar. Tipos: pdf, prompt, instrucao, comando, link, nota, skill. Só pedidos deste ${T.pc} são aceitos.</small></details>`;
       box.onclick = async (e) => {
         const cp = e.target.closest('[data-cop]'); if (cp) { T.copiarTexto(cp.dataset.cop); return T.toast('Código copiado'); }
         const rm = e.target.closest('[data-rm]');

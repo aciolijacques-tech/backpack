@@ -13,6 +13,7 @@
     { id: 'comando', nome: 'Comando', cor: '#ff7e00' },
     { id: 'link', nome: 'Link', cor: '#e0b100' },
     { id: 'nota', nome: 'Nota', cor: '#ff5a7a' },
+    { id: 'skill', nome: 'Skill', cor: '#00c2a8' },
   ];
   T.STATUS = [{ id: 'ver', nome: 'Para ver' }, { id: 'andamento', nome: 'Em andamento' }, { id: 'feito', nome: 'Concluído' }];
   T.PRIOS = ['baixa', 'media', 'alta'];
@@ -225,9 +226,18 @@
     T.db.itens.push(c); T.salvar(); T.som('pop'); T.render(); T.toast('Duplicado');
   };
   T.todasTags = () => {
-    const s = new Set();
+    const s = new Set(T.db.tags || []);
     T.db.itens.forEach((i) => i.tags.forEach((t) => s.add(t)));
+    (T.db.clientes || []).forEach((c) => c.tags.forEach((t) => s.add(t)));
     return [...s].sort((a, b) => a.localeCompare(b, 'pt'));
+  };
+  // registra etiquetas novas no registro permanente (data/db.json: tags), para elas continuarem
+  // aparecendo como sugestão mesmo que sejam apagadas depois do item/cliente onde foram digitadas
+  T.registrarTags = (novas) => {
+    const s = new Set(T.db.tags || (T.db.tags = []));
+    let mudou = false;
+    (novas || []).forEach((t) => { t = String(t || '').trim(); if (t && !s.has(t)) { s.add(t); mudou = true; } });
+    if (mudou) { T.db.tags = [...s].sort((a, b) => a.localeCompare(b, 'pt')); T.salvar(); }
   };
 
   // ---------- avisos (toasts) ----------

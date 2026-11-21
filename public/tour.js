@@ -19,7 +19,7 @@
     ],
     tarefas: [
       ['.tnova', 'Escreva a tarefa. “amanhã”, “sexta” ou “dia 20” no fim viram data. O microfone dita.'],
-      ['.tnova-l2', 'Data, lembrete com horário (o Mac avisa), prioridade, repetição e cliente.'],
+      ['.tnova-l2', 'Data, lembrete com horário (o computador avisa), prioridade, repetição e cliente.'],
       ['.tcols', 'As tarefas ficam separadas em atrasadas, hoje, próximas e sem data.'],
     ],
     calendario: [['.cal-mes', 'Clique num dia para criar uma tarefa. Arraste uma tarefa para remarcar. O 🎯 mostra os hábitos do dia.']],

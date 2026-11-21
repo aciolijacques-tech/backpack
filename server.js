@@ -16,9 +16,11 @@ const EXP = require('./lib/exportar');
 const CNX = require('./lib/conexoes');
 const REDE = require('./lib/rede');
 const LEMB = require('./lib/lembretes');
+const SIS = require('./lib/sistema');
 
 const PORTA = Number(process.env.BACKPACK_PORTA) || 4322;
-const PORTA_TLS = PORTA + 1; // celular: só HTTPS, só com "Usar no celular" ligado
+const PORTA_TLS = PORTA + 1; // celular com certificado instalado (HTTPS), só com "Usar no celular" ligado
+const PORTA_LAN = PORTA + 2; // celular em qualquer navegador (HTTP na rede de casa), idem
 const PUBLIC = path.join(D.ROOT, 'public');
 const MAX_JSON = 30 * 1024 * 1024;
 const MAX_ANEXO = 1024 * 1024 * 1024;
@@ -115,7 +117,7 @@ D.backupDiario();
 // ---------- rotas da API ----------
 async function api(req, res, u, p) {
   const m = req.method;
-  if (p === '/api/ping') return enviar(res, 200, { ok: true, app: 'backpack', versao: UPD.local().versao, remoto: !REDE.doMac(req) });
+  if (p === '/api/ping') return enviar(res, 200, { ok: true, app: 'backpack', versao: UPD.local().versao, remoto: !REDE.doMac(req), so: process.platform });
   if (p === '/api/rev' && m === 'GET') return enviar(res, 200, { rev: db.rev });
   // primeiro nome de quem usa o Mac (nome completo da conta do macOS; senão, o nome de usuário)
   if (p === '/api/usuario' && m === 'GET') {
@@ -186,8 +188,7 @@ async function api(req, res, u, p) {
   if ((p === '/api/abrir' || p === '/api/mostrar') && m === 'POST') {
     const full = arquivoAnexo((await lerJson(req)).arquivo);
     if (!full) return enviar(res, 404, { erro: 'Arquivo não encontrado.' });
-    if (process.platform !== 'darwin') return enviar(res, 400, { erro: 'Abrir no programa só funciona no macOS.' });
-    cp.spawn('open', p === '/api/abrir' ? [full] : ['-R', full], { detached: true, stdio: 'ignore' }).unref();
+    SIS.abrir(full, p === '/api/mostrar');
     return enviar(res, 200, { ok: true });
   }
 
@@ -196,9 +197,8 @@ async function api(req, res, u, p) {
     let pasta = String((await lerJson(req)).pasta || '').trim();
     if (pasta.startsWith('~')) pasta = path.join(require('os').homedir(), pasta.slice(1));
     let ok = false; try { ok = path.isAbsolute(pasta) && fs.statSync(pasta).isDirectory(); } catch (_) {}
-    if (!ok) return enviar(res, 404, { erro: 'Não achei essa pasta neste Mac.' });
-    if (process.platform !== 'darwin') return enviar(res, 400, { erro: 'Abrir pasta só funciona no macOS.' });
-    cp.spawn('open', [pasta], { detached: true, stdio: 'ignore' }).unref();
+    if (!ok) return enviar(res, 404, { erro: 'Não achei essa pasta neste computador.' });
+    SIS.abrir(pasta);
     return enviar(res, 200, { ok: true });
   }
 
@@ -303,7 +303,7 @@ async function api(req, res, u, p) {
   // versão e atualização
   if (p === '/api/versao' && m === 'GET') return enviar(res, 200, { ...UPD.local(), appMac: UPD.appMac() });
   if (p === '/api/reinstalar' && m === 'POST') {
-    if (process.platform !== 'darwin') return enviar(res, 400, { erro: 'Só no macOS.' });
+    if (!SIS.MAC && !SIS.WIN) return enviar(res, 400, { erro: 'Só no macOS e no Windows.' });
     UPD.reinstalar(); return enviar(res, 200, { ok: true });
   }
   if (p === '/api/atualizacao' && m === 'GET') return enviar(res, 200, await UPD.checar(u.searchParams.get('forcar') === '1'));
@@ -319,14 +319,14 @@ async function api(req, res, u, p) {
   if (p === '/api/conexoes/apagar' && m === 'POST') { CNX.apagar((await lerJson(req)).id); return enviar(res, 200, { ok: true }); }
 
   // usar no celular
-  if (p === '/api/rede' && m === 'GET') return enviar(res, 200, REDE.status(PORTA_TLS, erroRede));
+  if (p === '/api/rede' && m === 'GET') return enviar(res, 200, REDE.status(PORTA_LAN, PORTA_TLS, erroRede));
   if (p === '/api/rede' && m === 'POST') {
     REDE.ligar((await lerJson(req)).on);
     await ouvirCelular();
     if (erroRede) REDE.ligar(false);
-    return enviar(res, erroRede ? 500 : 200, erroRede ? { erro: erroRede } : REDE.status(PORTA_TLS));
+    return enviar(res, erroRede ? 500 : 200, erroRede ? { erro: erroRede } : REDE.status(PORTA_LAN, PORTA_TLS));
   }
-  if (p === '/api/rede/trocar' && m === 'POST') { REDE.trocar(); return enviar(res, 200, REDE.status(PORTA_TLS)); }
+  if (p === '/api/rede/trocar' && m === 'POST') { REDE.trocar(); return enviar(res, 200, REDE.status(PORTA_LAN, PORTA_TLS)); }
 
   if (p === '/api/desligar' && m === 'POST') {
     enviar(res, 200, { ok: true });
@@ -337,16 +337,18 @@ async function api(req, res, u, p) {
 }
 
 // ---------- servidor ----------
-// Host aceito: 127.0.0.1/localhost na porta do app (HTTP) e, com o celular ligado, os endereços deste
-// Mac na porta HTTPS. Isso bloqueia "DNS rebinding" (site de fora apontando um nome para 127.0.0.1).
-function hostValido(h, tls) {
+// Host aceito: 127.0.0.1/localhost na porta do app e, com o celular ligado, os endereços deste Mac nas
+// portas do celular. Isso bloqueia "DNS rebinding" (site de fora apontando um nome para 127.0.0.1).
+function hostValido(h, porta, tls) {
   const m = /^(\[[^\]]+\]|[^:]+)(?::(\d+))?$/.exec(String(h || '').toLowerCase());
   if (!m) return false;
   const nome = m[1].replace(/^\[|\]$/g, '');
-  if (tls) return Number(m[2] || 443) === PORTA_TLS && REDE.cfg.on && REDE.hostOk(nome);
-  return Number(m[2] || 80) === PORTA && (nome === '127.0.0.1' || nome === 'localhost');
+  if (Number(m[2] || (tls ? 443 : 80)) !== porta) return false;
+  if (porta === PORTA) return !tls && (nome === '127.0.0.1' || nome === 'localhost');
+  if (porta === PORTA_TLS && !tls) return false;
+  return (porta === PORTA_TLS || porta === PORTA_LAN) && REDE.cfg.on && REDE.hostOk(nome);
 }
-const origemValida = (o, tls) => !o || (String(o).startsWith(tls ? 'https://' : 'http://') && hostValido(String(o).replace(/^https?:\/\//, ''), tls));
+const origemValida = (o, porta, tls) => !o || (String(o).startsWith(tls ? 'https://' : 'http://') && hostValido(String(o).replace(/^https?:\/\//, ''), porta, tls));
 
 // entrada de outros programas: cabeçalho X-Backpack-Conexao com o código; só do próprio Mac
 async function entrada(req, res, p) {
@@ -374,7 +376,8 @@ async function entrada(req, res, p) {
 async function app(req, res) {
   try {
     const tls = !!req.socket.encrypted;
-    if (!hostValido(req.headers.host, tls)) return enviar(res, 403, { erro: 'host' });
+    const porta = req.socket.localPort;
+    if (!hostValido(req.headers.host, porta, tls)) return enviar(res, 403, { erro: 'host' });
     const u = new URL(req.url, 'http://x');
     const p = u.pathname;
     const doMac = REDE.doMac(req);
@@ -397,10 +400,10 @@ async function app(req, res) {
       if (req.method === 'POST') {
         const pin = new URLSearchParams(await lerCorpo(req, 4096)).get('pin');
         const r = REDE.tentar(req, pin);
-        if (r === 'ok') { res.writeHead(302, { 'Set-Cookie': REDE.setCookie(), Location: '/' }); return res.end(); }
+        if (r === 'ok') { res.writeHead(302, { 'Set-Cookie': REDE.setCookie(tls), Location: '/' }); return res.end(); }
         return enviar(res, 401, REDE.paginaEntrar(r === 'travado' ? 'Muitas tentativas. Espere 15 minutos.' : 'Código errado.'), 'text/html; charset=utf-8');
       }
-      if (REDE.tokenOk(u.searchParams.get('c') || '')) { res.writeHead(302, { 'Set-Cookie': REDE.setCookie(), Location: '/' }); return res.end(); }
+      if (REDE.tokenOk(u.searchParams.get('c') || '')) { res.writeHead(302, { 'Set-Cookie': REDE.setCookie(tls), Location: '/' }); return res.end(); }
       return enviar(res, 200, REDE.paginaEntrar(), 'text/html; charset=utf-8');
     }
     if (!REDE.autorizado(req)) {
@@ -411,7 +414,7 @@ async function app(req, res) {
     if (p.startsWith('/api/')) {
       if (!doMac && soMac(p, req.method)) return enviar(res, 403, { erro: 'Isso só dá para fazer no Mac onde o Backpack está instalado.' });
       // escrita só com o cabeçalho do app: um site de fora não consegue mandar esse cabeçalho sem permissão (CORS)
-      if (req.method !== 'GET' && (req.headers['x-backpack'] !== '1' || !origemValida(req.headers.origin, tls))) {
+      if (req.method !== 'GET' && (req.headers['x-backpack'] !== '1' || !origemValida(req.headers.origin, porta, tls))) {
         return enviar(res, 403, { erro: 'Pedido recusado.' });
       }
       return await api(req, res, u, p);
@@ -430,22 +433,28 @@ async function app(req, res) {
   }
 }
 
-// O Mac usa sempre HTTP em 127.0.0.1 (nunca sai do computador). O celular usa uma segunda porta,
-// só HTTPS, aberta para a rede apenas com "Usar no celular" ligado.
-let server = null, primeira = true, avisouPortaOcupada = false, servCel = null, erroRede = '';
+// O Mac usa sempre HTTP em 127.0.0.1 (nunca sai do computador). O celular usa duas portas abertas para a
+// rede apenas com "Usar no celular" ligado: HTTP (qualquer navegador, é a do QR) e HTTPS (com certificado).
+let server = null, primeira = true, avisouPortaOcupada = false, servCel = null, servLan = null, erroRede = '';
+const fechar = (v) => { if (v) { v.close(); if (v.closeAllConnections) v.closeAllConnections(); } };
 async function ouvirCelular() {
   erroRede = '';
-  if (servCel) { const v = servCel; servCel = null; v.close(); if (v.closeAllConnections) v.closeAllConnections(); }
+  fechar(servCel); fechar(servLan); servCel = null; servLan = null;
   if (!REDE.cfg.on) return;
+  await new Promise((ok) => {
+    const s = http.createServer(app);
+    s.on('error', (e) => { erroRede = e.code === 'EADDRINUSE' ? `A porta ${PORTA_LAN} está ocupada por outro programa.` : String(e.message); ok(); });
+    s.listen(PORTA_LAN, '0.0.0.0', () => { servLan = s; console.log(`Celular liberado: ${REDE.ips().map((i) => `http://${i}:${PORTA_LAN}`).join('  ')}`); ok(); });
+  });
   let tls;
   try { tls = REDE.certificado(); } catch (e) {
-    erroRede = `Não consegui criar o certificado de segurança (${String(e.message || e).split('\n')[0]}).`;
-    console.error(erroRede); return;
+    // sem certificado o celular ainda entra pelo HTTP; só a versão segura (microfone) fica de fora
+    console.error(`Não consegui criar o certificado de segurança (${String(e.message || e).split('\n')[0]}).`); return;
   }
   await new Promise((ok) => {
     const s = https.createServer({ key: tls.key, cert: tls.cert }, app);
-    s.on('error', (e) => { erroRede = e.code === 'EADDRINUSE' ? `A porta ${PORTA_TLS} está ocupada por outro programa.` : String(e.message); ok(); });
-    s.listen(PORTA_TLS, '0.0.0.0', () => { servCel = s; console.log(`Celular liberado: ${REDE.ips().map((i) => `https://${i}:${PORTA_TLS}`).join('  ')}`); ok(); });
+    s.on('error', (e) => { console.error(e.code === 'EADDRINUSE' ? `A porta ${PORTA_TLS} está ocupada por outro programa.` : String(e.message)); ok(); });
+    s.listen(PORTA_TLS, '0.0.0.0', () => { servCel = s; console.log(`Celular (seguro): ${REDE.ips().map((i) => `https://${i}:${PORTA_TLS}`).join('  ')}`); ok(); });
   });
 }
 function ouvir() {
@@ -454,7 +463,7 @@ function ouvir() {
   s.on('error', (e) => {
     if (e.code === 'EADDRINUSE' && primeira) {
       // ligado pelo macOS (Instalar Backpack): espera a porta liberar em vez de cair e ser religado em loop
-      if (process.env.BACKPACK_LAUNCHD) {
+      if (SIS.SERVICO) {
         if (!avisouPortaOcupada) { console.log(`Porta ${PORTA} ocupada (outro Backpack aberto?). Tentando de novo a cada 30 s.`); avisouPortaOcupada = true; }
         setTimeout(() => s.listen(PORTA, host), 30000);
         return;

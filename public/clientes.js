@@ -26,10 +26,10 @@
     return L;
   };
   const botoes = (c) => T.cliLinks(c).map(([ic, n, u]) => (u === '#pasta'
-    ? `<button class="cli-a" data-pasta="${c.id}" title="Abrir a pasta no Finder">${Icones.svg(ic, 14)}<small>${n}</small></button>`
+    ? `<button class="cli-a" data-pasta="${c.id}" title="Abrir a pasta">${Icones.svg(ic, 14)}<small>${n}</small></button>`
     : `<a class="cli-a" href="${esc(u)}" target="_blank" rel="noopener" title="${n}">${Icones.svg(ic, 14)}<small>${n}</small></a>`)).join('');
   T.abrirPastaCliente = async (c) => {
-    if (T.remoto) return T.toast('A pasta abre só no Mac.');
+    if (T.remoto) return T.toast(`A pasta abre só no ${T.pc}.`);
     try { await T.api('/api/abrir-pasta', { method: 'POST', body: JSON.stringify({ pasta: c.pasta }) }); T.som('abrir'); } catch (e) { T.toast(e.message, null, 'erro'); }
   };
   const iniciais = (n) => String(n || '?').trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
@@ -136,8 +136,8 @@
           <div class="grade2">${campo('empresa', 'Empresa / marca', 'Ex: Padaria do João')}${campo('whats', 'WhatsApp', '(81) 99999-9999', 'tel')}
             ${campo('email', 'E-mail', 'nome@email.com', 'email')}${campo('insta', 'Instagram', '@perfil')}
             ${campo('site', 'Site', 'site.com.br')}${campo('trello', 'Quadro do Trello', 'Cole o link do quadro')}</div>
-          <label class="campo">Pasta do cliente ${T.dica('Caminho da pasta no Mac (ex.: ~/Clientes/João) ou link do Google Drive. O botão Pasta abre direto.')}<input type="text" data-k="pasta" value="${esc(c.pasta)}" placeholder="~/Clientes/Nome ou link do Drive"></label>
-          <label class="campo">Etiquetas<input type="text" id="cTags" value="${esc(c.tags.join(', '))}" placeholder="social media, mensal…"></label>
+          <label class="campo">Pasta do cliente ${T.dica('Caminho da pasta no ${T.pc} (ex.: ~/Clientes/João ou C:\\Clientes\\João) ou link do Google Drive. O botão Pasta abre direto.')}<input type="text" data-k="pasta" value="${esc(c.pasta)}" placeholder="~/Clientes/Nome ou link do Drive"></label>
+          <label class="campo">Etiquetas<input type="text" id="cTags" value="${esc(c.tags.join(', '))}" placeholder="social media, mensal…" list="listaTagsCli"><datalist id="listaTagsCli">${T.todasTags().map((x) => `<option value="${esc(x)}">`).join('')}</datalist></label>
           <label class="campo">Anotações<div class="caixa-copia"><textarea data-k="notas" id="cNotas" rows="4" placeholder="Briefing, combinados, valores, preferências…">${esc(c.notas)}</textarea>${T.micBtn ? T.micBtn('cNotas') : ''}</div></label>
           <div class="campo"><span>${Icones.svg('tarefas', 14)} Tarefas do cliente</span>
             <div id="cTarefas">${ts.map(T.tarefaHTML).join('') || '<small class="suave">Nenhuma tarefa ainda.</small>'}</div>
@@ -173,7 +173,7 @@
         $$('[data-pasta]', bar).forEach((b) => { b.onclick = () => T.abrirPastaCliente(c); });
       };
       $$('[data-k]', m).forEach((el) => { el.oninput = () => { c[el.dataset.k] = el.value; toca(); }; if (el.tagName === 'INPUT') el.onchange = barra; });
-      $('#cTags', m).oninput = (e) => { c.tags = [...new Set(e.target.value.split(',').map((x) => x.trim().replace(/^#/, '')).filter(Boolean))]; toca(); };
+      $('#cTags', m).oninput = (e) => { c.tags = [...new Set(e.target.value.split(',').map((x) => x.trim().replace(/^#/, '')).filter(Boolean))]; T.registrarTags(c.tags); toca(); };
       $('#cSt', m).onclick = (e) => { const x = e.target.closest('[data-s]'); if (!x) return; c.status = x.dataset.s; toca(); T.som('clique'); desenhar(); };
       $$('.cli-barra [data-pasta]', m).forEach((b) => { b.onclick = () => T.abrirPastaCliente(c); });
       const addT = () => {
@@ -197,7 +197,8 @@
       if ($('#cItMod', m)) $('#cItMod', m).onclick = () => { T.escolherModelo({ cliente: c.id }); };
       if ($('#cItLiga', m)) $('#cItLiga', m).onchange = (e) => { const it = T.db.itens.find((i) => i.id === e.target.value); if (it) { it.cliente = c.id; T.mexeu(it); T.som('soltar'); desenhar(); } };
       $('#cTrello', m).onclick = () => enviarTrello(c);
-      if ($('#cFin', m)) $('#cFin', m).onclick = () => { T.finEditar({ tipo: 'entrada', cliente: c.id, desc: `Pagamento ${c.nome || ''}`.trim(), cat: 'Serviço / cliente' }); };
+      if ($('#cFin', m)) $('#cFin', m).onclick = () => { T.finEditar({ tipo: 'entrada', cliente: c.id, desc: `Pagamento ${c.nome || ''}`.trim(), cat: 'Serviço de design', frente: 'empresa' }); };
+      $$('.fin-linha.mini[data-f]', m).forEach((r) => { r.onclick = () => { const f = T.finAchar(r.dataset.f); if (f) T.finEditar(f); }; });
     }
     desenhar();
     if (!c.nome) $('#cNome', m).focus();

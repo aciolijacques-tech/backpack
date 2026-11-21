@@ -186,10 +186,10 @@
   // ---------- Configurações ----------
   T.paginas.config = () => {
     const c = T.db.config, v = $('#vista');
-    v.innerHTML = `<div class="pagina-cab"><div><h1>Configurações ${T.botaoTutorial('config')}</h1><p>Tudo fica salvo neste Mac.</p></div></div><div class="cfg-wrap"><nav class="cfg-menu vidro-cartao" id="cfgMenu"></nav><div class="config">
+    v.innerHTML = `<div class="pagina-cab"><div><h1>Configurações ${T.botaoTutorial('config')}</h1><p>Tudo fica salvo neste ${T.pc}.</p></div></div><div class="cfg-wrap"><nav class="cfg-menu vidro-cartao" id="cfgMenu"></nav><div class="config">
       <section class="cfg vidro-cartao"><h3>${Icones.svg('sol', 18)} Aparência</h3>
-        <div class="cfg-linha"><span>Seu nome ${T.dica('Aparece na saudação do Início. Na primeira vez vem do nome da conta do Mac.')}</span><input type="text" id="cfgNome" value="${esc(c.nome || '')}" maxlength="40" placeholder="Como quer ser chamado"></div>
-        <div class="cfg-linha"><span>Vidro</span><div class="seg" id="cTema">${[['claro', 'Claro'], ['escuro', 'Escuro'], ['auto', 'Igual ao Mac']].map(([k, n]) => `<button data-t="${k}" class="${c.tema === k ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+        <div class="cfg-linha"><span>Seu nome ${T.dica('Aparece na saudação do Início. Na primeira vez vem do nome da conta do ${T.pc}.')}</span><input type="text" id="cfgNome" value="${esc(c.nome || '')}" maxlength="40" placeholder="Como quer ser chamado"></div>
+        <div class="cfg-linha"><span>Vidro</span><div class="seg" id="cTema">${[['claro', 'Claro'], ['escuro', 'Escuro'], ['auto', 'Igual ao sistema']].map(([k, n]) => `<button data-t="${k}" class="${c.tema === k ? 'on' : ''}">${n}</button>`).join('')}</div></div>
         <div class="cfg-linha"><span>Tamanho das letras</span><div class="seg" id="cFonte">${[[0.9, 'A−'], [1, 'Normal'], [1.1, 'A+'], [1.25, 'A++']].map(([x, n]) => `<button data-f="${x}" class="${(+c.fonte || 1) === x ? 'on' : ''}">${n}</button>`).join('')}</div></div>
         <div class="cfg-linha"><span>Modo compacto ${T.dica('Deixa tudo mais apertado: cabe mais coisa na tela.')}</span>${T.chave('cCompacto', c.compacto)}</div></section>
       ${T.secaoFundo()}
@@ -211,12 +211,12 @@
       ${T.secaoVersao()}
       ${T.secaoAjuda()}
       <section class="cfg vidro-cartao"><h3>${Icones.svg('comando', 18)} Atalhos</h3><div class="atalhos">
-        <kbd>⌘K</kbd><span>Buscar em tudo ou dar um comando (ou <kbd>/</kbd>)</span><kbd>N</kbd><span>Novo item</span><kbd>H</kbd><span>Início</span><kbd>B</kbd><span>Biblioteca</span>
+        <kbd>${T.mod}K</kbd><span>Buscar em tudo ou dar um comando (ou <kbd>/</kbd>)</span><kbd>N</kbd><span>Novo item</span><kbd>H</kbd><span>Início</span><kbd>B</kbd><span>Biblioteca</span>
         <kbd>T</kbd><span>Tarefas</span><kbd>C</kbd><span>Calendário</span><kbd>R</kbd><span>Rotina</span><kbd>M</kbd><span>Mapa de conexões</span><kbd>F</kbd><span>Começar ou parar o foco</span>
-        <kbd>V</kbd><span>Criar por voz</span><kbd>⌘[ ⌘]</kbd><span>Voltar e avançar</span>
+        <kbd>V</kbd><span>Criar por voz</span><kbd>${T.mod}[ ${T.mod}]</kbd><span>Voltar e avançar</span>
         <kbd>Esc</kbd><span>Fechar janela</span><kbd>Clique direito</kbd><span>Menu do cartão</span></div></section>
       <section class="cfg vidro-cartao"><h3>${Icones.svg('desligar', 18)} Servidor</h3><div class="linha"><button class="btn perigo" id="cDesligar">${Icones.svg('desligar', 15)} Desligar o Backpack</button>
-        ${T.dica('Desliga o servidor até você entrar no Mac de novo ou abrir o “Instalar Backpack”/“Abrir.command”.')}</div></section></div></div>`;
+        ${T.dica('Desliga o servidor até você entrar no ${T.pc} de novo ou abrir o instalador do Backpack.')}</div></section></div></div>`;
     // menu das seções, montado a partir dos títulos
     const secs = $$('.config > .cfg');
     secs.forEach((x, i) => { if (!x.id) x.id = `sec-${i}`; });
@@ -281,7 +281,7 @@
       } catch (e) { msg(e.message, true); T.som('erro'); }
     };
     $('#cDesligar').onclick = async () => {
-      if (!(await T.confirmar('Desligar o servidor do Backpack? Ele volta quando você entrar no Mac de novo ou abrir o Instalar Backpack.', 'Desligar'))) return;
+      if (!(await T.confirmar(`Desligar o servidor do Backpack? Ele volta quando você entrar no ${T.pc} de novo ou abrir o instalador.`, 'Desligar'))) return;
       try { await T.api('/api/desligar', { method: 'POST' }); } catch (_) {}
       document.body.innerHTML = '<div class="desligado"><div class="vidro">Backpack desligado. Pode fechar esta janela.</div></div>';
     };

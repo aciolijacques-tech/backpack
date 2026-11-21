@@ -166,7 +166,7 @@
       $('#eCat', m).onchange = (e) => { it.categoria = e.target.value; mexeu(); };
       $('#eSt', m).onchange = (e) => { it.status = e.target.value; mexeu(); T.som('clique'); };
       $('#eData', m).onchange = (e) => { it.data = e.target.value; mexeu(); };
-      $('#eTags', m).oninput = (e) => { it.tags = [...new Set(e.target.value.split(',').map((s) => s.trim().replace(/^#/, '')).filter(Boolean))]; mexeu(); };
+      $('#eTags', m).oninput = (e) => { it.tags = [...new Set(e.target.value.split(',').map((s) => s.trim().replace(/^#/, '')).filter(Boolean))]; T.registrarTags(it.tags); mexeu(); };
       if ($('#eCli', m)) $('#eCli', m).onchange = (e) => { it.cliente = e.target.value; mexeu(); };
       $('#eModelo', m).onchange = (e) => { it.modelo = e.target.checked; mexeu(); T.som('clique'); if (it.modelo) T.toast('Agora ele aparece em “Novo item” como modelo'); };
       $('#svOk', m).onclick = () => {
@@ -219,8 +219,8 @@
           <span class="anexo-nome" title="${esc(a.nome)}">${esc(a.nome)}</span><small>${T.tamanho(a.tamanho)}</small>
           <button class="btn sec pequeno" data-a="ver">${T.ehTexto(a.nome) ? `${Icones.svg('livro', 14)} Ler` : `${Icones.svg('olho', 14)} Ver`}</button>
           <a class="btn sec pequeno" href="${T.urlAnexo(a, true)}" download="${esc(a.nome)}">${Icones.svg('baixar', 14)} Baixar</a>
-          <button class="btn sec pequeno" data-a="abrir" title="Abrir no programa do Mac">${Icones.svg('abrir', 14)} Abrir</button>
-          <button class="btn sec pequeno" data-a="pasta" title="Mostrar no Finder">${Icones.svg('pasta', 14)}</button>
+          <button class="btn sec pequeno" data-a="abrir" title="Abrir no programa do ${T.pc}">${Icones.svg('abrir', 14)} Abrir</button>
+          <button class="btn sec pequeno" data-a="pasta" title="Mostrar na pasta">${Icones.svg('pasta', 14)}</button>
           <button class="btn-x" data-a="rm" title="Remover do item">${Icones.svg('x', 14)}</button></div>`).join('')
         + `<div class="soltar-aqui" id="eSoltar">${Icones.svg('clipe', 16)} Arraste arquivos aqui ou clique para escolher</div><input type="file" id="eArquivo" multiple hidden>`;
       box.onclick = async (e) => {

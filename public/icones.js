@@ -9,6 +9,7 @@ const Icones = (() => {
     comando: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9l3 3-3 3M12 15h5"/>',
     link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
     nota: '<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h5"/>',
+    skill: '<path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/>',
     // páginas
     inicio: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/>',
     biblioteca: '<path d="M4 20V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v15M9 20V8a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v12M14.6 9.6l2.9-.8a1 1 0 0 1 1.2.7L21.3 20M3 20h18"/>',

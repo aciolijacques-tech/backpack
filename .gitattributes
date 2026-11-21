@@ -1,0 +1,3 @@
+# scripts do Windows: guardados com CRLF e sem conversão (o cmd e o PowerShell precisam assim)
+windows/* -text
+*.cmd -text

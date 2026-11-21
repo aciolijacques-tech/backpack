@@ -1,15 +1,12 @@
 {
-  "versao": "1.0.0",
-  "data": "2026-11-17",
+  "versao": "1.0.1",
+  "data": "2026-11-20",
   "novidades": [
-    "Primeira versão do Backpack: seu inventário pessoal no Mac, sem conta e sem nuvem",
-    "Biblioteca de PDFs, prompts, instruções, comandos, links e notas, com busca em tudo (⌘K)",
-    "Tarefas com lembrete e repetição, calendário, rotina de hábitos e metas",
-    "Clientes e financeiro: contatos, funil, entradas e saídas, parcelas e calculadora de preço",
-    "23 kits prontos (briefings, contratos, proposta, vendas e lançamento) e modelos",
-    "Voz: fale em vez de digitar e crie itens falando",
-    "IA dentro dos itens, modo foco, XP e conquistas, Notion, Trello e Google Drive",
-    "Use no celular pela rede de casa, com conexão criptografada",
-    "Visual em vidro com três ambientes no fundo, e aviso quando sair versão nova"
+    "Biblioteca: novo tipo Skill",
+    "Clientes: toque num recebimento pendente para marcar como pago ou apagar",
+    "Etiquetas novas ficam salvas e aparecem como sugestão em itens e clientes",
+    "Celular: tela explica melhor como instalar o certificado (resolve o aviso em qualquer navegador, incluindo Chrome)",
+    "Financeiro: separado em Casa e Empresa, com categorias próprias para cada frente",
+    "Windows: Backpack agora instala e roda no Windows 10 e 11 (em teste)"
   ]
 }

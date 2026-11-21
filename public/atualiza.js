@@ -51,7 +51,7 @@
     if (v.appMac !== 'reinstalar') return;
     avisouApp = true;
     const m = T.modal(`${T.cabecalho(`${Icones.svg('atualizar', 18)} Falta um passo`)}<div class="modal-corpo">
-      <p>Esta versão mudou o app do Mac. Para ele ficar em dia, o instalador precisa rodar de novo.</p>
+      <p>Esta versão mudou o app do ${T.pc}. Para ele ficar em dia, o instalador precisa rodar de novo.</p>
       <p class="suave">Leva cerca de 1 minuto e o app reabre sozinho. Seus itens, anexos e chaves ficam como estão.</p>
       <div class="linha fim"><button class="btn sec" data-fechar>Depois</button><button class="btn" id="reinst">${Icones.svg('atualizar', 15)} Atualizar o app agora</button></div></div>`, { classe: 'pequeno' });
     $('#reinst', m).onclick = async () => {

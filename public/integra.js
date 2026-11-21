@@ -38,7 +38,7 @@
       <div class="cfg-linha"><span>Trello ${T.dica('1) Em trello.com/power-ups/admin crie um Power-Up e gere a chave da API. 2) Na mesma página, gere o Token e autorize. 3) Cole a chave e o token aqui e escolha a lista.')}${ponto(s.trello.ok)}</span></div>
       <div class="linha"><input type="password" id="tChave" placeholder="${s.trello.temChave ? 'Chave guardada' : 'API key'}" autocomplete="off"><input type="password" id="tTok" placeholder="${s.trello.temChave ? 'Token guardado' : 'Token'}" autocomplete="off"><button class="btn sec" id="tBuscar">Buscar listas</button></div>
       <div class="linha"><select id="tLista"><option value="">${s.trello.alvoNome ? esc(s.trello.alvoNome) : '— escolha a lista de destino —'}</option></select><button class="btn" id="tSalvar">Guardar</button><button class="btn sec" id="tTirar">Remover</button></div>
-      <small class="suave">Depois de conectar, clique com o botão direito num item ou use “Enviar para…” dentro dele. As chaves ficam só neste Mac, em data/segredos.json, fora do backup, do Drive e do GitHub.</small>`;
+      <small class="suave">Depois de conectar, clique com o botão direito num item ou use “Enviar para…” dentro dele. As chaves ficam só neste ${T.pc}, em data/segredos.json, fora do backup, do Drive e do GitHub.</small>`;
     const erro = (e) => T.toast(e.message, null, 'erro');
     $('#nBuscar').onclick = async () => {
       try {

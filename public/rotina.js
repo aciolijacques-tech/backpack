@@ -197,7 +197,7 @@
       <div class="grade2">
         <div class="campo"><span>Quanto por dia? ${T.dica('Para “fiz ou não fiz”, deixe 1 vez. Para contar (8 copos, 30 minutos), coloque o número e a unidade: aparecem − e + para ir somando.')}</span>
           <div class="linha"><input type="number" id="hAlvo" min="1" max="999" value="${alvo(o)}" class="curto"><select id="hUn">${(UN_HAB.includes(o.un) ? UN_HAB : [o.un, ...UN_HAB]).map((u) => `<option ${u === o.un ? 'selected' : ''}>${esc(u)}</option>`).join('')}</select></div></div>
-        <label class="campo">Lembrete ${T.dica('Opcional. No horário, o Mac avisa se o hábito do dia ainda não foi marcado.')}<input type="time" id="hHora" value="${esc(o.hora || '')}"></label>
+        <label class="campo">Lembrete ${T.dica('Opcional. No horário, o ${T.pc} avisa se o hábito do dia ainda não foi marcado.')}<input type="time" id="hHora" value="${esc(o.hora || '')}"></label>
       </div>
       <div class="linha ${novo ? 'fim' : 'entre'}">${novo ? '' : `<button class="btn perigo" id="hDel">${Icones.svg('lixeira', 15)} Apagar</button>`}<button class="btn" id="hOk">${Icones.svg('check', 15)} Salvar hábito</button></div></div>`, { classe: 'pequeno' });
     ligarEmoji(m, o);

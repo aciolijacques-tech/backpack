@@ -1,7 +1,7 @@
 # Spec — Biblioteca (núcleo da v1)
 
 ## Objetivo
-Guardar e achar itens pessoais rápido: Estudo/PDF, Prompt, Instrução, Comando, Link, Nota.
+Guardar e achar itens pessoais rápido: Estudo/PDF, Prompt, Instrução, Comando, Link, Nota, Skill.
 
 ## Comportamento
 - Listar itens em grade, mais recente primeiro.
@@ -13,6 +13,9 @@ Guardar e achar itens pessoais rápido: Estudo/PDF, Prompt, Instrução, Comando
 - Excluir item = soft delete (`apagadoEm` preenchido, some da listagem, mas fica no db.json).
   Sem lixeira na UI ainda — recuperação é manual editando o JSON. Risco aceito e documentado.
 - Item com data vira "tarefa": aparece destacado quando a data é hoje ou já passou.
+- Etiquetas (itens e clientes) não têm lista fechada: qualquer etiqueta digitada entra num registro
+  permanente (`db.tags`) e continua sugerida no autocompletar mesmo que seja apagada do item/cliente onde
+  foi usada.
 
 ## Dados
 `data/db.json`: `{ itens: [ { id, tipo, titulo, texto, tags[], data, anexo: {nome, caminho} | null,

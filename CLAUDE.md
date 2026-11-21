@@ -1,7 +1,7 @@
 # Backpack — regras fixas
 
 ## O que é
-Inventário pessoal para Mac: PDFs/estudos, prompts, instruções, comandos, links e notas, com tarefas,
+Inventário pessoal para Mac e Windows: PDFs/estudos, prompts, instruções, comandos, links e notas, com tarefas,
 calendário, mapa de conexões, IA, foco e gamificação. Mesmo objetivo do MyLoot
 (github.com/edirsooo/myloot), com código, visual e arquitetura próprios. Antes se chamava Tooref
 (repositório no GitHub: `aciolijacques-tech/backpack`).
@@ -19,6 +19,11 @@ calendário, mapa de conexões, IA, foco e gamificação. Mesmo objetivo do MyLo
 - Mac: app nativo `mac/Backpack.swift` (janela WKWebView), compilado e instalado em Aplicativos
   pelo `Instalar Backpack.app`, que também liga o servidor pelo launchd (`com.backpack.server`).
   Registro da instalação em `data/logs/instalacao.log`.
+- Windows (decisão 0012): `windows/` com `instalar.ps1` (atalhos no Menu Iniciar, Área de Trabalho e
+  Inicializar), `servidor.cmd` (religa se cair, faz o papel do launchd) e `abrir.vbs` (Edge em modo app).
+  Diferenças entre sistemas só em `lib/sistema.js`. Scripts do Windows com CRLF (`.gitattributes`).
+  Ao mudar um script de `windows/`, a lista de arquivos da marca tem que bater em `instalar.ps1` e
+  `lib/atualizar.js`.
 
 ## Segurança (fixo)
 - Toda escrita na API exige o cabeçalho `X-Backpack: 1` e origem aceita; `Host` precisa ser
@@ -36,6 +41,16 @@ calendário, mapa de conexões, IA, foco e gamificação. Mesmo objetivo do MyLo
 - Não mexer em `data/` nas atualizações do app.
 - Não publicar versão nova sem subir o número em `versao.json` (é isso que avisa os usuários).
 - Não implementar função nova sem spec em `docs/specs/`.
+
+## Vídeos de divulgação (diretrizes de edição)
+- Ao criar ou editar vídeo do Backpack (demo, Reels, Shorts), siga o pacote em
+  `docs/video/referencia-edicao/`: leia `prompt-de-recriacao.txt` primeiro, depois
+  `receita-visual.json` (regras R01–R12) e `referencia-de-edicao.md`; `mapa-de-cenas.csv` é a evidência.
+- O pacote descreve a linguagem de edição de um vídeo de terceiro. Use só a gramática visual: nada de
+  falas, voz, nome, endereço, promessas ou motivo de fundo da referência. Identidade e paleta vêm do
+  `DESIGN.md`; conteúdo e voz são do Backpack.
+- Os tempos da referência são evidência, não timeline: recalcule pela fala do vídeo do Backpack.
+- O vídeo de referência fica fora do repositório (Downloads) e nunca entra no Git.
 
 ## Comandos
 - Rodar: `node server.js` (ou `Abrir.command`)
