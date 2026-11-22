@@ -14,6 +14,11 @@ app (`--app`, sem barra de endereço, perfil próprio em `%LOCALAPPDATA%\Backpac
   `UninstallString` apontando para `desinstalar.ps1`), para o Backpack aparecer em Configurações →
   Aplicativos e poder ser desinstalado por lá, igual a um programa normal. `desinstalar.ps1` remove
   essa chave no fim.
+- `instalar.ps1` e `desinstalar.ps1` se reabrem como administrador (um `Start-Process -Verb RunAs`
+  logo no início, se ainda não estiverem elevados) só para liberar — e depois tirar — uma regra do
+  Firewall do Windows nas portas do celular (4323 e 4324, rede Privada, amarrada ao `node.exe`
+  encontrado). Isso evita depender da pessoa aceitar (ou não aceitar, ou nem ver) o aviso do Firewall
+  no momento em que liga "Usar no celular". O resto do instalador roda igual, só que elevado.
 - O que muda por sistema fica em `lib/sistema.js` (abrir arquivo/pasta, aviso nativo, serviço).
 - Atualização: `tar.exe` do Windows abre o ZIP. A marca do app usa os scripts de `windows/` (mesma
   ordem no `instalar.ps1` e no `lib/atualizar.js`).

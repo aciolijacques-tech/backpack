@@ -5,6 +5,18 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 function Aviso($texto, $icone = 'Information') { [System.Windows.Forms.MessageBox]::Show($texto, 'Backpack', 'OK', $icone) | Out-Null }
 
+# precisa de administrador para liberar as portas do celular no Firewall do Windows (uma vez só, aqui);
+# sem isso, o toggle "Usar no celular" fica na mão de cada pessoa aceitar o aviso do Firewall na hora certa.
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+  try {
+    $argumentos = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $argumentos
+  } catch {
+    Aviso "Para instalar (e liberar o celular na rede de casa), o Backpack precisa de permissão de administrador.`n`nAbra `"Instalar Backpack.cmd`" de novo e clique em Sim na janela do Windows." 'Warning'
+  }
+  exit
+}
+
 $app = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path -LiteralPath (Join-Path $app 'server.js'))) {
   Aviso 'Deixe a pasta "windows" dentro da pasta do Backpack (junto do server.js) e abra o instalador de novo.' 'Warning'; exit 1
@@ -35,6 +47,17 @@ try {
   Write-Output "versão do node: $(& $node --version)"
   # o servidor.cmd usa este caminho se o "node" ainda não estiver no PATH (Node instalado agora, sem reiniciar)
   [IO.File]::WriteAllText((Join-Path $app 'data\node.txt'), $node)
+
+  # ---------- Firewall: libera as portas do celular na rede Privada, sem depender do aviso na hora ----------
+  # (desligado por padrão: só abre de verdade quando a pessoa ligar "Usar no celular" nas Configurações)
+  try {
+    Get-NetFirewallRule -DisplayName 'Backpack (celular)' -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue
+    New-NetFirewallRule -DisplayName 'Backpack (celular)' -Description 'Backpack: QR Code e código de 6 números do "Usar no celular".' `
+      -Direction Inbound -Action Allow -Protocol TCP -LocalPort 4323, 4324 -Program $node -Profile Private | Out-Null
+    Write-Output 'firewall: portas 4323 e 4324 liberadas na rede Privada'
+  } catch {
+    Write-Output "firewall: não consegui liberar as portas ($($_.Exception.Message)); o Windows pode perguntar na hora de ligar o celular"
+  }
 
   # ---------- para o Backpack que estiver rodando desta pasta ----------
   $alvo = (Join-Path $PSScriptRoot 'servidor.cmd').ToLower()

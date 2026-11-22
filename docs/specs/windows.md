@@ -21,3 +21,6 @@ instalados pelo npm. Google Drive: unidade do "Google Drive para computador" (ex
    Programas e Recursos), com o botão "Desinstalar" rodando o mesmo `desinstalar.ps1`.
 9. "Usar no celular" ligado: o QR Code (link padrão em HTTP) abre e sincroniza no celular mesmo sem
    o Git para Windows instalado (sem `openssl`, só o modo seguro/HTTPS para microfone fica de fora).
+10. `Instalar Backpack.cmd` pede permissão de administrador (uma vez, no início) e libera as portas
+    4323/4324 no Firewall do Windows (rede Privada) sem precisar que a pessoa aceite nada depois —
+    "Usar no celular" funciona de primeira, mesmo que ninguém veja ou responda o aviso do Firewall.

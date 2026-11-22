@@ -19,6 +19,8 @@ WINDOWS — instalar
 2) Dois cliques em "Instalar Backpack.cmd".
    - Se aparecer "O Windows protegeu o computador": clique em "Mais informações" →
      "Executar assim mesmo".
+   - Depois, o Windows pede permissão de administrador (serve para liberar o celular no
+     Firewall já na instalação, sem precisar configurar nada depois): clique em "Sim".
 3) Pronto: o Backpack abre e fica no Menu Iniciar, na Área de Trabalho e em
    Configurações → Aplicativos.
 

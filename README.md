@@ -38,11 +38,13 @@ no app ou abra uma [issue](https://github.com/aciolijacques-tech/backpack/issues
 2. Botão verde **Code → Download ZIP**, descompacte, renomeie a pasta para `Backpack` e deixe em
    Documentos **antes** de instalar.
 3. Dois cliques em **Instalar Backpack.cmd**. Se o Windows mostrar "O Windows protegeu o computador",
-   clique em **Mais informações → Executar assim mesmo**.
+   clique em **Mais informações → Executar assim mesmo**. Depois, o Windows pede permissão de
+   administrador (para liberar o celular no Firewall já na instalação): clique em **Sim**.
 
-Pronto: o **Backpack** fica no Menu Iniciar e na Área de Trabalho e abre numa janela própria (usa o Edge,
-que já vem no Windows). O servidor liga sozinho quando você entra no Windows. Para remover:
-`Desinstalar Backpack.cmd` (não apaga seus dados). Se mover a pasta, rode o instalador de novo.
+Pronto: o **Backpack** fica no Menu Iniciar, na Área de Trabalho e em Configurações → Aplicativos, e abre
+numa janela própria (usa o Edge, que já vem no Windows). O servidor liga sozinho quando você entra no
+Windows. Para remover: `Desinstalar Backpack.cmd` (não apaga seus dados). Se mover a pasta, rode o
+instalador de novo.
 
 ## O que tem
 ![Biblioteca do Backpack](docs/imagens/biblioteca.jpg)
