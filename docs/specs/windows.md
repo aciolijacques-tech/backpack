@@ -19,3 +19,5 @@ instalados pelo npm. Google Drive: unidade do "Google Drive para computador" (ex
 7. `Desinstalar Backpack.cmd` remove atalhos e para o servidor; `data\` fica intacta.
 8. Depois de instalar, "Backpack" aparece em Configurações → Aplicativos (e no Painel de Controle →
    Programas e Recursos), com o botão "Desinstalar" rodando o mesmo `desinstalar.ps1`.
+9. "Usar no celular" ligado: o QR Code (link padrão em HTTP) abre e sincroniza no celular mesmo sem
+   o Git para Windows instalado (sem `openssl`, só o modo seguro/HTTPS para microfone fica de fora).

@@ -312,7 +312,7 @@ test('conexões aceitam item só com código válido e não duplicam', async () 
   } finally { s.parar(); }
 });
 
-test('celular só por HTTPS com certificado deste Mac; sem código não entra', async () => {
+test('celular por HTTPS com certificado deste Mac; sem código não entra', async () => {
   const https = require('https');
   const ip = Object.values(os.networkInterfaces()).flat().find((i) => i && (i.family === 'IPv4' || i.family === 4) && !i.internal && !i.address.startsWith('169.254.'));
   const s = await subir();
@@ -321,7 +321,7 @@ test('celular só por HTTPS com certificado deste Mac; sem código não entra', 
     assert.equal(st.on, false);
     st = await (await s.api('/api/rede', { method: 'POST', body: JSON.stringify({ on: true }) })).json();
     assert.equal(st.on, true, st.erro); assert.match(st.pin, /^\d{6}$/);
-    if (st.ips.length) assert.match(st.link, /^https:\/\//); // sem Wi-Fi não há link (a tela avisa)
+    if (st.ips.length) assert.match(st.link, /^http:\/\//); // link/QR padrão é HTTP (decisão 0011); sem Wi-Fi não há link (a tela avisa)
     const portaTls = Number(new URL(s.base).port) + 1;
     const ca = fs.readFileSync(path.join(s.dados, 'tls', 'ca.crt'));
     // pedido HTTPS validando o certificado com a autoridade deste Mac (igual ao celular depois de confiar)
@@ -353,5 +353,28 @@ test('celular só por HTTPS com certificado deste Mac; sem código não entra', 
     st = await (await s.api('/api/rede', { method: 'POST', body: JSON.stringify({ on: false }) })).json();
     assert.equal(st.on, false);
     await assert.rejects(pedir(alvo, '/entrar'), 'desligado fecha a porta HTTPS');
+  } finally { s.parar(); }
+});
+
+test('celular entra pelo HTTP da rede (link/QR padrão), sem precisar de certificado', async () => {
+  // é o caminho que tem que funcionar sempre, inclusive no Windows sem o openssl do Git para Windows
+  const ip = Object.values(os.networkInterfaces()).flat().find((i) => i && (i.family === 'IPv4' || i.family === 4) && !i.internal && !i.address.startsWith('169.254.'));
+  const s = await subir();
+  try {
+    const st = await (await s.api('/api/rede', { method: 'POST', body: JSON.stringify({ on: true }) })).json();
+    assert.equal(st.on, true, st.erro);
+    if (st.ips.length) assert.match(st.link, /^http:\/\//);
+    if (!ip) return; // sem Wi-Fi não dá para testar a porta na rede
+    const portaLan = Number(new URL(s.base).port) + 2;
+    const alvo = ip.address;
+    assert.equal((await fetch(`http://${alvo}:${portaLan}/api/db`)).status, 401, 'sem cookie não lê os dados');
+    const form = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    const certo = await fetch(`http://${alvo}:${portaLan}/entrar`, { method: 'POST', body: `pin=${st.pin}`, headers: form, redirect: 'manual' });
+    assert.equal(certo.status, 302);
+    const setCookie = certo.headers.get('set-cookie');
+    assert.match(setCookie, /^backpack_lan=/);
+    assert.ok(!/Secure/.test(setCookie), 'cookie do HTTP não é Secure');
+    const cookie = setCookie.split(';')[0];
+    assert.equal((await fetch(`http://${alvo}:${portaLan}/api/db`, { headers: { cookie } })).status, 200, 'com cookie lê pelo HTTP');
   } finally { s.parar(); }
 });

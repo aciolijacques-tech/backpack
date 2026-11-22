@@ -33,16 +33,16 @@
     let s;
     try { s = await T.api('/api/rede'); } catch (e) { box.innerHTML = `<small class="vermelho">${esc(e.message)}</small>`; return; }
     const desenhar = () => {
-      box.innerHTML = `<div class="cfg-linha"><span>Liberar na rede Wi-Fi de casa ${T.dica('Celular e ${T.pc} precisam estar no mesmo Wi-Fi. A conexão é criptografada (HTTPS). Só entra quem ler o QR Code ou digitar o código. Configurações, chaves e desligar continuam só no Mac.')}</span>${T.chave('celOn', s.on)}</div>
+      box.innerHTML = `<div class="cfg-linha"><span>Liberar na rede Wi-Fi de casa ${T.dica(`Celular e ${T.pc} precisam estar no mesmo Wi-Fi. Só entra quem ler o QR Code ou digitar o código. Configurações, chaves e desligar continuam só no ${T.pc}.`)}</span>${T.chave('celOn', s.on)}</div>
         ${s.erro ? `<p class="vermelho">${esc(s.erro)}</p>` : ''}
-        ${s.on ? (s.link ? `<div class="cel-qr"><div class="qr">${T.qrSvg(s.link, 190)}</div><div><p>1. No celular, abra a câmera e aponte para o QR Code.</p><p>2. Ou abra <b class="mono">https://${esc(s.ips[0])}:${s.portaTls}</b> no navegador e digite o código:</p>
+        ${s.on ? (s.link ? `<div class="cel-qr"><div class="qr">${T.qrSvg(s.link, 190)}</div><div><p>1. No celular, abra a câmera e aponte para o QR Code.</p><p>2. Ou abra <b class="mono">http://${esc(s.ips[0])}:${s.porta}</b> no navegador e digite o código:</p>
             <div class="pin">${esc(s.pin.replace(/(\d{3})(\d{3})/, '$1 $2'))}</div>
-            <p class="suave pequeno-txt">Na primeira vez aparece “conexão não privada” (o certificado é deste ${T.pc}, não de uma empresa). Toque em “Mostrar detalhes → visitar o site” e depois em <a href="https://${esc(s.ips[0])}:${s.portaTls}/certificado" target="_blank">“Instale o certificado deste Mac”</a>: uma vez só, o aviso some de qualquer navegador, incluindo o Chrome.</p>
-            <details class="pequeno-txt"><summary class="suave" style="cursor:pointer">Chrome ainda não conecta?</summary><p class="suave">Use <b class="mono">http://${esc(s.ips[0])}:${s.porta}</b> em vez do link acima — sem criptografia, só na sua rede de casa.</p></details>
+            <p class="suave pequeno-txt">Sem criptografia, só vale na sua rede de casa — é o jeito mais simples e funciona em qualquer celular, mesmo sem instalar nada.</p>
+            <details class="pequeno-txt"><summary class="suave" style="cursor:pointer">Quer usar o microfone no celular também?</summary><p class="suave">Isso pede uma conexão segura (HTTPS). Abra <b class="mono">https://${esc(s.ips[0])}:${s.portaTls}/certificado</b> no celular e siga o passo a passo: uma vez só, instala o certificado deste ${T.pc} e o Backpack passa a valer também pelo endereço seguro, com direito a microfone.</p></details>
             <button class="btn sec pequeno" id="celTroca">${Icones.svg('atualizar', 13)} Trocar código</button> ${T.dica('Gera um QR e um código novos e desconecta todos os celulares que já entraram.')}</div></div>`
           : `<p class="vermelho">Não achei o ${T.pc} numa rede Wi-Fi. Conecte no Wi-Fi e abra esta tela de novo.</p>`)
           : `<p class="suave">Desligado: só este ${T.pc} acessa o Backpack.</p>`}
-        <small class="suave">Na primeira vez, o macOS pode perguntar se o “node” pode aceitar conexões: clique em Permitir.</small>`;
+        <small class="suave">Na primeira vez, o firewall do ${T.pc} pode perguntar se o “node” pode aceitar conexões: clique em Permitir (no Windows, marque pelo menos a rede "Privada").</small>`;
       $('#celOn', box).onchange = async (e) => {
         try { s = await T.api('/api/rede', { method: 'POST', body: JSON.stringify({ on: e.target.checked }) }); T.som('clique'); desenhar(); } catch (er) { T.toast(er.message, null, 'erro'); s = await T.api('/api/rede').catch(() => s); desenhar(); }
       };

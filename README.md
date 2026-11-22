@@ -64,7 +64,8 @@ que já vem no Windows). O servidor liga sozinho quando você entra no Windows. 
 - **Tarefas que repetem** e **lembrete com horário** (o Mac avisa, mesmo com a janela fechada)
 - **Voz**: fale em vez de digitar e crie itens falando. A transcrição roda no seu Mac; na primeira
   vez ele baixa o motor de voz (uns 80 MB)
-- **Usar no celular** pela rede Wi-Fi de casa, com conexão criptografada (HTTPS), QR Code e código de 6 números
+- **Usar no celular** pela rede Wi-Fi de casa, com QR Code e código de 6 números (e HTTPS opcional,
+  para o microfone)
 - **23 kits prontos** (briefings, contratos, proposta, vendas e lançamento), cada um com PDF
 - **Rascunho** nas fichas, **voltar/avançar** e **modelos** no "Novo item"
 - **Backup com senha**, **exportar para o Obsidian** e **conexões** para outros programas mandarem itens
@@ -83,15 +84,17 @@ clique direito no cartão abre o menu.
 
 ## Limitações conhecidas
 - Windows: suporte novo, ainda em teste. Linux não é suportado.
-- Windows: o microfone usa o do Edge (pede permissão); o celular em HTTPS precisa do Git para Windows
-  instalado (traz o `openssl`), sem ele o celular entra pelo HTTP; atalhos de teclado usam Ctrl no lugar de Cmd.
+- Windows: o microfone usa o do Edge (pede permissão); o modo seguro do celular (HTTPS, para o
+  microfone) precisa do Git para Windows instalado (traz o `openssl`) — sem ele, o celular continua
+  entrando normalmente pelo HTTP; atalhos de teclado usam Ctrl no lugar de Cmd.
 - Sem assinatura da Apple: o macOS pede confirmação na primeira abertura do instalador.
 - Para instalar, o Mac precisa das Ferramentas de Linha de Comando da Apple.
 - Pensado para uma pessoa. Janelas e celular abertos juntos se sincronizam a cada 4 s; se a mesma
   coisa mudar nos dois ao mesmo tempo, fica a versão de quem salvou por último.
-- **Celular**: a conexão é HTTPS com um certificado criado no seu Mac. Na primeira vez o celular
-  avisa "conexão não privada"; instalando o certificado do Backpack (link na tela de entrar) o aviso
-  some. Fora de casa, não funciona (a não ser por VPN, como o Tailscale).
+- **Celular**: a conexão padrão é HTTP (simples, sem instalar nada). Para microfone no celular, dá
+  para usar a conexão HTTPS com um certificado criado no seu computador; na primeira vez o celular
+  avisa "conexão não privada", e instalando o certificado do Backpack (link na tela de entrar) o
+  aviso some. Fora de casa, não funciona (a não ser por VPN, como o Tailscale).
 - **Voz** precisa de internet na primeira vez (baixa o motor) e da permissão de microfone do macOS.
 - Os contratos dos kits são modelos de referência: revise com um advogado antes de usar.
 
