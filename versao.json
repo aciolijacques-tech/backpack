@@ -1,9 +1,7 @@
 {
-  "versao": "1.0.2",
+  "versao": "1.0.3",
   "data": "2026-11-22",
   "novidades": [
-    "IA: um motor por vez, ligar o Claude Code desliga o Codex e vice-versa",
-    "IA: escolha entre modelos Claude (Opus, Sonnet, Haiku) e GPT (Astra, Sol, Luna) na mesma lista",
-    "IA: quando o limite de uso do motor ligado acaba, o Backpack tenta o outro automaticamente e avisa"
+    "Windows: depois de instalar, o Backpack aparece em Configurações → Aplicativos, com botão para desinstalar"
   ]
 }
