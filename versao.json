@@ -1,7 +1,7 @@
 {
-  "versao": "1.0.4",
+  "versao": "1.0.5",
   "data": "2026-11-22",
   "novidades": [
-    "Celular: corrigido o QR Code/link, que apontava para o modo seguro (HTTPS) e podia não funcionar sem certificado — agora é HTTP por padrão (funciona em qualquer celular, sem instalar nada), com HTTPS como opção extra para o microfone"
+    "Windows: o instalador agora pede permissão de administrador uma vez e já libera o celular no Firewall do Windows, sem precisar que a pessoa aceite nada depois"
   ]
 }
