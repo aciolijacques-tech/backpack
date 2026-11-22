@@ -1,12 +1,9 @@
 {
-  "versao": "1.0.1",
-  "data": "2026-11-20",
+  "versao": "1.0.2",
+  "data": "2026-11-22",
   "novidades": [
-    "Biblioteca: novo tipo Skill",
-    "Clientes: toque num recebimento pendente para marcar como pago ou apagar",
-    "Etiquetas novas ficam salvas e aparecem como sugestão em itens e clientes",
-    "Celular: tela explica melhor como instalar o certificado (resolve o aviso em qualquer navegador, incluindo Chrome)",
-    "Financeiro: separado em Casa e Empresa, com categorias próprias para cada frente",
-    "Windows: Backpack agora instala e roda no Windows 10 e 11 (em teste)"
+    "IA: um motor por vez, ligar o Claude Code desliga o Codex e vice-versa",
+    "IA: escolha entre modelos Claude (Opus, Sonnet, Haiku) e GPT (Astra, Sol, Luna) na mesma lista",
+    "IA: quando o limite de uso do motor ligado acaba, o Backpack tenta o outro automaticamente e avisa"
   ]
 }
