@@ -76,6 +76,28 @@ try {
     Atalho (Join-Path $d 'Backpack.lnk') 'abrir.vbs' 'Backpack: inventário pessoal'
   }
 
+  # ---------- 3. aparecer em "Aplicativos instalados" (Configurações > Apps) e poder desinstalar por lá ----------
+  $chaveDesinstalar = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Backpack'
+  New-Item -Path $chaveDesinstalar -Force | Out-Null
+  $versaoApp = '1.0.0'
+  try { $versaoApp = (Get-Content -LiteralPath (Join-Path $app 'versao.json') -Raw | ConvertFrom-Json).versao } catch { }
+  $tamanhoKB = 0
+  try {
+    $soma = (Get-ChildItem -LiteralPath $app -Recurse -File -ErrorAction SilentlyContinue |
+      Where-Object { $_.FullName -notlike '*\data\*' } | Measure-Object -Property Length -Sum).Sum
+    $tamanhoKB = [math]::Round($soma / 1KB)
+  } catch { }
+  New-ItemProperty -Path $chaveDesinstalar -Name 'DisplayName' -PropertyType String -Value 'Backpack' -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'DisplayVersion' -PropertyType String -Value $versaoApp -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'Publisher' -PropertyType String -Value 'Backpack' -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'DisplayIcon' -PropertyType String -Value "$ico,0" -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'InstallLocation' -PropertyType String -Value $app -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'UninstallString' -PropertyType String -Value ('powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + (Join-Path $PSScriptRoot 'desinstalar.ps1') + '"') -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'NoModify' -PropertyType DWord -Value 1 -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'NoRepair' -PropertyType DWord -Value 1 -Force | Out-Null
+  New-ItemProperty -Path $chaveDesinstalar -Name 'EstimatedSize' -PropertyType DWord -Value $tamanhoKB -Force | Out-Null
+  Write-Output "registrado em Aplicativos instalados (v$versaoApp, $tamanhoKB KB)"
+
   # marca da versão do app instalada: se uma atualização mudar estes arquivos, o Backpack pede para reinstalar
   $bytes = New-Object System.Collections.Generic.List[byte]
   foreach ($a in @('instalar.ps1', 'servidor.cmd', 'servidor.vbs', 'abrir.vbs')) { $bytes.AddRange([IO.File]::ReadAllBytes((Join-Path $PSScriptRoot $a))) }

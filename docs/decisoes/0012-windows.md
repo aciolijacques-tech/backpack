@@ -10,6 +10,10 @@ app (`--app`, sem barra de endereço, perfil próprio em `%LOCALAPPDATA%\Backpac
 - `servidor.cmd` (aberto escondido por `servidor.vbs`): faz o papel do launchd. Religa se cair; saída 0
   para; saída 75 (atualizou) religa na hora. Marca o processo com `BACKPACK_SERVICO=1`.
 - `abrir.vbs`: liga o servidor se estiver desligado e abre a janela.
+- `instalar.ps1` também grava `HKCU\...\Uninstall\Backpack` (nome, versão, ícone, tamanho e o
+  `UninstallString` apontando para `desinstalar.ps1`), para o Backpack aparecer em Configurações →
+  Aplicativos e poder ser desinstalado por lá, igual a um programa normal. `desinstalar.ps1` remove
+  essa chave no fim.
 - O que muda por sistema fica em `lib/sistema.js` (abrir arquivo/pasta, aviso nativo, serviço).
 - Atualização: `tar.exe` do Windows abre o ZIP. A marca do app usa os scripts de `windows/` (mesma
   ordem no `instalar.ps1` e no `lib/atualizar.js`).

@@ -1,0 +1,40 @@
+BACKPACK — instalar
+===================
+
+O que você precisa: Mac (macOS 12 ou mais novo) ou Windows 10/11, e o Node.js instalado.
+Grátis, em https://nodejs.org — baixe o botão "LTS" e instale antes de continuar.
+
+1) Descompacte esta pasta e deixe ela num lugar fixo (ex.: Documentos). Não rode o instalador
+   direto de dentro do .zip ou da pasta Downloads — mova a pasta "Backpack" inteira primeiro.
+
+MAC — instalar
+2) Dois cliques em "Instalar Backpack.app".
+   - Se o Mac avisar que é "de um desenvolvedor não identificado": clique com o botão direito
+     no instalador → Abrir → Abrir.
+   - Se pedir as Ferramentas de Linha de Comando da Apple: aceite (é grátis, da Apple), espere
+     terminar e abra o instalador de novo.
+3) Pronto: o Backpack abre e fica em Aplicativos e no Launchpad.
+
+WINDOWS — instalar
+2) Dois cliques em "Instalar Backpack.cmd".
+   - Se aparecer "O Windows protegeu o computador": clique em "Mais informações" →
+     "Executar assim mesmo".
+3) Pronto: o Backpack abre e fica no Menu Iniciar, na Área de Trabalho e em
+   Configurações → Aplicativos.
+
+Nos dois casos, o servidor liga sozinho quando você entra no computador — não precisa abrir
+mais nada depois de instalado.
+
+DESINSTALAR
+Mac: dois cliques em "Desinstalar.command" (dentro da pasta do Backpack).
+Windows: Configurações → Aplicativos → Backpack → Desinstalar
+         (ou dois cliques em "Desinstalar Backpack.cmd").
+Em nenhum dos dois os seus dados são apagados — ficam na pasta "data", que só aparece depois
+de abrir o app pela primeira vez.
+
+SE MOVER OU RENOMEAR A PASTA DO BACKPACK
+Abra o instalador de novo (ele reconfigura tudo sozinho).
+
+SE ALGO DER ERRADO
+Os detalhes ficam em data/logs/instalacao.log, dentro da pasta do Backpack (aparece depois
+que você tenta instalar).

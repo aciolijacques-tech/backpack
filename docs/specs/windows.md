@@ -17,3 +17,5 @@ instalados pelo npm. Google Drive: unidade do "Google Drive para computador" (ex
 5. Teste do aviso do foco mostra a notificação do Windows.
 6. Atualização: baixa, troca os arquivos e o servidor volta com a versão nova.
 7. `Desinstalar Backpack.cmd` remove atalhos e para o servidor; `data\` fica intacta.
+8. Depois de instalar, "Backpack" aparece em Configurações → Aplicativos (e no Painel de Controle →
+   Programas e Recursos), com o botão "Desinstalar" rodando o mesmo `desinstalar.ps1`.
