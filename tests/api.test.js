@@ -11,13 +11,13 @@ const cp = require('child_process');
 const ROOT = path.join(__dirname, '..');
 let porta = 4600 + Math.floor(Math.random() * 300);
 
-async function subir(prepararDados) {
+async function subir(prepararDados, envExtra = {}) {
   const dados = fs.mkdtempSync(path.join(os.tmpdir(), 'backpack-teste-'));
   if (prepararDados) prepararDados(dados);
   const p = porta++;
   const ch = cp.spawn(process.execPath, ['server.js'], {
     cwd: ROOT, stdio: 'ignore',
-    env: { ...process.env, BACKPACK_DATA: dados, BACKPACK_PORTA: String(p), BACKPACK_SEM_AVISO: '1', BACKPACK_SEM_ATUALIZACAO: '1' },
+    env: { ...process.env, BACKPACK_DATA: dados, BACKPACK_PORTA: String(p), BACKPACK_SEM_AVISO: '1', BACKPACK_SEM_ATUALIZACAO: '1', ...envExtra },
   });
   const base = `http://127.0.0.1:${p}`;
   for (let i = 0; i < 50; i++) {
@@ -148,14 +148,79 @@ test('restaurar backup guarda uma cópia antes e aceita o arquivo baixado', asyn
   } finally { s.parar(); }
 });
 
+// programas falsos no lugar do Claude Code e do Codex (nunca usa a assinatura de verdade)
+function iasFalsas({ claude, codex }) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'backpack-ias-'));
+  const versao = (v) => `#!/bin/sh\nif [ "$1" = "--version" ]; then echo "${v}"; exit 0; fi\ncat >/dev/null\n`;
+  const escreve = (nome, corpo) => { const f = path.join(dir, nome); fs.writeFileSync(f, corpo); fs.chmodSync(f, 0o755); };
+  if (claude === 'limite') escreve('claude', `${versao('9.9.9')}echo '{"is_error":true,"result":"Claude AI usage limit reached|1700000000"}'\nexit 1\n`);
+  if (claude === 'login') escreve('claude', `${versao('9.9.9')}echo '{"is_error":true,"result":"Invalid API key · Please run /login"}'\nexit 1\n`);
+  if (codex === 'ok') {
+    escreve('codex', `${versao('codex-cli 1.0.0')}while [ $# -gt 0 ]; do case "$1" in -o) out="$2"; shift;; -m) mod="$2"; shift;; esac; shift; done\necho "via codex $mod" > "$out"\n`);
+  }
+  return { BACKPACK_IA_PATH: `${dir}${path.delimiter}/usr/bin${path.delimiter}/bin` };
+}
+const pedirIa = (s) => s.api('/api/ia', { method: 'POST', body: JSON.stringify({ acao: 'livre', pedido: 'oi', texto: 'x' }) });
+const mudarIa = async (s, ia) => {
+  const db = await (await fetch(`${s.base}/api/db`)).json();
+  db.config.ia = { ...db.config.ia, ...ia };
+  assert.equal((await s.api('/api/db', { method: 'PUT', body: JSON.stringify(db) })).status, 200);
+  return (await (await fetch(`${s.base}/api/db`)).json()).config.ia;
+};
+
 test('IA sem nada instalado responde com erro claro', async () => {
-  const s = await subir();
+  const s = await subir(null, iasFalsas({}));
   try {
     const st = await (await fetch(`${s.base}/api/ia/status`)).json();
     assert.equal(typeof st.temChave, 'boolean');
+    assert.equal(st.codex.ok, false);
     const r = await s.api('/api/ia', { method: 'POST', body: JSON.stringify({ acao: 'livre', pedido: '', texto: 'x', via: 'codex' }) });
     assert.equal(r.status, 502);
     assert.ok((await r.json()).erro);
+  } finally { s.parar(); }
+});
+
+test('IA: só um motor ligado por vez ao gravar', { skip: process.platform === 'win32' }, async () => {
+  const s = await subir(null, iasFalsas({}));
+  try {
+    assert.deepEqual((await mudarIa(s, { ligadas: {} })).ligadas, { claude: true, codex: false });
+    assert.deepEqual((await mudarIa(s, { ligadas: { claude: true, codex: true }, modelo: 'gpt-6.2-sol' })).ligadas, { claude: false, codex: true });
+    assert.deepEqual((await mudarIa(s, { ligadas: { claude: false, codex: false } })).ligadas, { claude: false, codex: false });
+    // Claude desligado deixa o Codex ligado, e o modelo vira o GPT do mesmo nível
+    const ia = await mudarIa(s, { ligadas: { claude: false }, modelo: 'claude-haiku-5-5' });
+    assert.deepEqual(ia.ligadas, { claude: false, codex: true });
+    assert.equal(ia.modelo, 'gpt-6-luna');
+  } finally { s.parar(); }
+});
+
+test('IA: limite do Claude acaba e o Codex responde com o modelo do mesmo nível', { skip: process.platform === 'win32' }, async () => {
+  const s = await subir(null, iasFalsas({ claude: 'limite', codex: 'ok' }));
+  try {
+    await mudarIa(s, { modelo: 'claude-opus-5-5', ligadas: { claude: true, codex: false } });
+    const r = await pedirIa(s);
+    const j = await r.json();
+    assert.equal(r.status, 200, j.erro);
+    assert.equal(j.texto, 'via codex gpt-6.2-astra');
+    assert.match(j.aviso, /limite.*usei o Codex/);
+  } finally { s.parar(); }
+});
+
+test('IA: erro que não é de limite não troca de motor', { skip: process.platform === 'win32' }, async () => {
+  const s = await subir(null, iasFalsas({ claude: 'login', codex: 'ok' }));
+  try {
+    const r = await pedirIa(s);
+    assert.equal(r.status, 502);
+    assert.match((await r.json()).erro, /logado/);
+  } finally { s.parar(); }
+});
+
+test('IA: com o Codex ligado usa o modelo GPT escolhido', { skip: process.platform === 'win32' }, async () => {
+  const s = await subir(null, iasFalsas({ claude: 'limite', codex: 'ok' }));
+  try {
+    await mudarIa(s, { modelo: 'gpt-6-luna', ligadas: { claude: false, codex: true } });
+    const j = await (await pedirIa(s)).json();
+    assert.equal(j.texto, 'via codex gpt-6-luna');
+    assert.equal(j.aviso, undefined);
   } finally { s.parar(); }
 });
 

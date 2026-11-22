@@ -16,7 +16,8 @@ testados no navegador em desktop e celular).
 - **Busca (Cmd+K ou /):** títulos, etiquetas, nomes de anexos, textos, tarefas e comandos.
 - **Leitor:** .md/.txt em blocos, com botão de copiar nos códigos; HTML sempre escapado.
 - **Mapa:** ligações por etiqueta, categoria (em corrente) e menção.
-- **IA:** só envia texto quando a pessoa clica. Ordem automática: Claude Code, Codex, chave.
+- **IA:** só envia texto quando a pessoa clica. Um motor por vez (Claude Code ou Codex), com troca
+  automática quando o limite acaba; ver `ia-motores.md`.
   Roda numa pasta vazia, sem ferramentas. Chave fica em `data/segredos.json` (permissão 600).
 - **Foco:** 15/25/45/60 min no servidor; aviso do macOS; XP resgatado ao abrir o app.
 - **Jogo:** XP com teto diário por ação, nível = raiz(xp/40)+1, meta diária, sequência de dias,
