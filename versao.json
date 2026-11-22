@@ -1,7 +1,7 @@
 {
-  "versao": "1.0.3",
+  "versao": "1.0.4",
   "data": "2026-11-22",
   "novidades": [
-    "Windows: depois de instalar, o Backpack aparece em Configurações → Aplicativos, com botão para desinstalar"
+    "Celular: corrigido o QR Code/link, que apontava para o modo seguro (HTTPS) e podia não funcionar sem certificado — agora é HTTP por padrão (funciona em qualquer celular, sem instalar nada), com HTTPS como opção extra para o microfone"
   ]
 }
